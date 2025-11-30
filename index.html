@@ -279,6 +279,8 @@ let flipStart, flipEnd, rotationStart, rotationEnd;
 let flipCorrect, rotationCorrect;
 let flipCorrectSvg, rotationCorrectSvg;
 let flipMistake=null, rotationMistake=null;
+let flipLastActionTime=0, rotationLastActionTime=0;
+let flipActionIntervals=[], rotationActionIntervals=[];
 
 /* ============ LEVEL 1 LOGIC ============ */
 function startLevel1(){
@@ -287,6 +289,10 @@ function startLevel1(){
   flipMistake=null;
   rotationMistake=null;
   flipStart = performance.now();
+  flipLastActionTime = 0;
+  flipActionIntervals = [];
+  rotationLastActionTime = 0;
+  rotationActionIntervals = [];
   document.getElementById("levelText").innerText = "Task: Choose the flipped shape";
   showScreen("level1");
   loadQuestion();
@@ -334,6 +340,19 @@ function selectOption(el){
   document.querySelectorAll(".option").forEach(s=>s.classList.remove("selected"));
   selectedElement = el;
   el.classList.add("selected");
+  
+  const now = performance.now();
+  if(stage==="flip"){
+    if(flipLastActionTime > 0){
+      flipActionIntervals.push((now - flipLastActionTime)/1000);
+    }
+    flipLastActionTime = now;
+  } else {
+    if(rotationLastActionTime > 0){
+      rotationActionIntervals.push((now - rotationLastActionTime)/1000);
+    }
+    rotationLastActionTime = now;
+  }
 }
 
 function submitAnswer(){
@@ -344,6 +363,9 @@ function submitAnswer(){
   if(stage==="flip"){
     flipEnd = now;
     flipCorrect = isCorrect;
+    if(flipLastActionTime > 0){
+      flipActionIntervals.push((now - flipLastActionTime)/1000);
+    }
     if(!isCorrect) flipMistake = selectedElement.outerHTML;
     stage = "rotation";
     rotationStart = performance.now();
@@ -352,6 +374,9 @@ function submitAnswer(){
   } else {
     rotationEnd = now;
     rotationCorrect = isCorrect;
+    if(rotationLastActionTime > 0){
+      rotationActionIntervals.push((now - rotationLastActionTime)/1000);
+    }
     if(!isCorrect) rotationMistake = selectedElement.outerHTML;
     endLevel1();
   }
@@ -360,11 +385,27 @@ function submitAnswer(){
 function endLevel1(){
   const flipTime = ((flipEnd - flipStart)/1000).toFixed(2);
   const rotationTime = ((rotationEnd - rotationStart)/1000).toFixed(2);
+  
+  const flipAvgInterval = flipActionIntervals.length > 0 
+    ? (flipActionIntervals.reduce((a,b)=>a+b,0) / flipActionIntervals.length).toFixed(2)
+    : "N/A";
+  const flipTimeBeforeSubmit = flipActionIntervals.length > 0
+    ? flipActionIntervals[flipActionIntervals.length - 1].toFixed(2)
+    : "N/A";
+    
+  const rotationAvgInterval = rotationActionIntervals.length > 0
+    ? (rotationActionIntervals.reduce((a,b)=>a+b,0) / rotationActionIntervals.length).toFixed(2)
+    : "N/A";
+  const rotationTimeBeforeSubmit = rotationActionIntervals.length > 0
+    ? rotationActionIntervals[rotationActionIntervals.length - 1].toFixed(2)
+    : "N/A";
 
   document.getElementById("summary").innerHTML = `
     <strong>Round 1 — Flip</strong><br>
     Result: ${flipCorrect ? "Correct" : "Wrong"}<br>
     Time: ${flipTime} sec<br>
+    Avg time between actions: ${flipAvgInterval} sec<br>
+    Time before submit: ${flipTimeBeforeSubmit} sec<br>
     ${flipMistake ? `
       <div class="resultShapes">
         <div>
@@ -384,6 +425,8 @@ function endLevel1(){
     <strong>Round 2 — Rotation</strong><br>
     Result: ${rotationCorrect ? "Correct" : "Wrong"}<br>
     Time: ${rotationTime} sec<br>
+    Avg time between actions: ${rotationAvgInterval} sec<br>
+    Time before submit: ${rotationTimeBeforeSubmit} sec<br>
     ${rotationMistake ? `
       <div class="resultShapes">
         <div>
@@ -430,6 +473,8 @@ let l2ErasedEdges = 0;
 let l2DragStartIndex = null;
 let l2RoundStartTime = 0;
 let l2ViewingTimeoutId = null;
+let l2LastActionTime = 0;
+let l2ActionIntervals = [];
 
 /* ============ LEVEL 2 FLOW ============ */
 function startLevel2(){
@@ -449,6 +494,8 @@ function startLevel2Round(){
   l2LastHintTime = 0;
   l2ErasedEdges = 0;
   l2DragStartIndex = null;
+  l2LastActionTime = 0;
+  l2ActionIntervals = [];
 
   const hintBtn = document.getElementById("hintBtn");
   const submitBtn = document.getElementById("submitL2Btn");
@@ -515,6 +562,13 @@ function renderLevel2Svg(vertices){
       if(!isNaN(index)){
         l2CurrentEdges.splice(index,1);
         l2ErasedEdges++;
+        
+        const now = performance.now();
+        if(l2LastActionTime > 0){
+          l2ActionIntervals.push((now - l2LastActionTime)/1000);
+        }
+        l2LastActionTime = now;
+        
         renderLevel2Svg(vertices);
       }
     });
@@ -540,6 +594,13 @@ function addL2Edge(i,j,vertices, viaHint){
   if(l2CurrentEdges.some(e => (e.i===i && e.j===j) || (e.i===j && e.j===i))) return;
   l2CurrentEdges.push({i,j,viaHint});
   l2EdgeHistory.push({i,j,viaHint});
+  
+  const now = performance.now();
+  if(l2LastActionTime > 0){
+    l2ActionIntervals.push((now - l2LastActionTime)/1000);
+  }
+  l2LastActionTime = now;
+  
   renderLevel2Svg(vertices);
 }
 
@@ -680,6 +741,18 @@ function submitLevel2(){
   const closed = isClosedPolygonL2(vertices);
   const followOrder = checkFollowOrder(n);
   const correct = (missing===0 && wrong===0 && !intersect && closed);
+  
+  const now = performance.now();
+  if(l2LastActionTime > 0){
+    l2ActionIntervals.push((now - l2LastActionTime)/1000);
+  }
+  
+  const avgInterval = l2ActionIntervals.length > 0
+    ? (l2ActionIntervals.reduce((a,b)=>a+b,0) / l2ActionIntervals.length).toFixed(2)
+    : 0;
+  const timeBeforeSubmit = l2ActionIntervals.length > 0
+    ? l2ActionIntervals[l2ActionIntervals.length - 1].toFixed(2)
+    : 0;
 
   l2Results.push({
     correct,
@@ -690,7 +763,9 @@ function submitLevel2(){
     intersect,
     erased: l2ErasedEdges,
     followOrder,
-    closed
+    closed,
+    avgActionInterval: avgInterval,
+    timeBeforeSubmit: timeBeforeSubmit
   });
 
   if(l2RoundIndex === level2Polygons.length - 1){
@@ -716,6 +791,8 @@ function endLevel2(){
         <tr><td>Closed Shape</td><td>${r.closed ? "Yes" : "No"}</td></tr>
         <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
         <tr><td>Followed Label Order</td><td>${r.followOrder ? "Yes" : "No"}</td></tr>
+        <tr><td>Avg Time Between Actions</td><td>${r.avgActionInterval} sec</td></tr>
+        <tr><td>Time Before Submit</td><td>${r.timeBeforeSubmit} sec</td></tr>
       </table>
     `;
   });
@@ -758,6 +835,8 @@ let l3ErasedEdges = 0;
 let l3DragStartIndex = null;
 let l3RoundStartTime = 0;
 let l3ViewingTimeoutId = null;
+let l3LastActionTime = 0;
+let l3ActionIntervals = [];
 
 /* ============ LEVEL 3 FLOW ============ */
 function startLevel3(){
@@ -776,6 +855,8 @@ function startLevel3Round(){
   l3LastHintTime = 0;
   l3ErasedEdges = 0;
   l3DragStartIndex = null;
+  l3LastActionTime = 0;
+  l3ActionIntervals = [];
 
   const hintBtn = document.getElementById("hintBtn3");
   const submitBtn = document.getElementById("submitL3Btn");
@@ -840,6 +921,13 @@ function renderLevel3Svg(vertices){
       if(!isNaN(index)){
         l3CurrentEdges.splice(index,1);
         l3ErasedEdges++;
+        
+        const now = performance.now();
+        if(l3LastActionTime > 0){
+          l3ActionIntervals.push((now - l3LastActionTime)/1000);
+        }
+        l3LastActionTime = now;
+        
         renderLevel3Svg(vertices);
       }
     });
@@ -864,6 +952,13 @@ function renderLevel3Svg(vertices){
 function addL3Edge(i,j,vertices){
   if(l3CurrentEdges.some(e => (e.i===i && e.j===j) || (e.i===j && e.j===i))) return;
   l3CurrentEdges.push({i,j});
+  
+  const now = performance.now();
+  if(l3LastActionTime > 0){
+    l3ActionIntervals.push((now - l3LastActionTime)/1000);
+  }
+  l3LastActionTime = now;
+  
   renderLevel3Svg(vertices);
 }
 
@@ -960,6 +1055,18 @@ function submitLevel3(){
 
   const closed = isClosedPolygonL3(vertices);
   const correct = (missing===0 && wrong===0 && !intersect && closed);
+  
+  const now = performance.now();
+  if(l3LastActionTime > 0){
+    l3ActionIntervals.push((now - l3LastActionTime)/1000);
+  }
+  
+  const avgInterval = l3ActionIntervals.length > 0
+    ? (l3ActionIntervals.reduce((a,b)=>a+b,0) / l3ActionIntervals.length).toFixed(2)
+    : 0;
+  const timeBeforeSubmit = l3ActionIntervals.length > 0
+    ? l3ActionIntervals[l3ActionIntervals.length - 1].toFixed(2)
+    : 0;
 
   l3Results.push({
     correct,
@@ -969,7 +1076,9 @@ function submitLevel3(){
     wrong,
     intersect,
     erased: l3ErasedEdges,
-    closed
+    closed,
+    avgActionInterval: avgInterval,
+    timeBeforeSubmit: timeBeforeSubmit
   });
 
   if(l3RoundIndex === level3Polygons.length - 1){
@@ -994,6 +1103,8 @@ function endLevel3(){
         <tr><td>Any Intersections</td><td>${r.intersect ? "Yes" : "No"}</td></tr>
         <tr><td>Closed Shape</td><td>${r.closed ? "Yes" : "No"}</td></tr>
         <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
+        <tr><td>Avg Time Between Actions</td><td>${r.avgActionInterval} sec</td></tr>
+        <tr><td>Time Before Submit</td><td>${r.timeBeforeSubmit} sec</td></tr>
       </table>
     `;
   });
