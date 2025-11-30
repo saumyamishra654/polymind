@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PolyMind Cognitive Assessment</title>
+<style>
+    * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    body {
+        font-family: "Inter", system-ui;
+        background: white;
+        color: black;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .screen {
+        display: none;
+        width: 100%;
+        height: 100%;
+        max-width: 1200px;
+        padding: 40px;
+        box-sizing: border-box;
+    }
+    .active { display: block; }
+
+    button {
+        padding: 14px 32px;
+        font-size: 18px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        background: black;
+        color: white;
+        font-weight: 600;
+        margin-top: 16px;
+    }
+    button:hover { opacity: 0.85; }
+
+    .question {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 70px;
+        margin-top: 25px;
+    }
+
+    .panel {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        border: 2px solid #ddd;
+    }
+
+    .options {
+        display: grid;
+        grid-template-columns: repeat(2, 160px);
+        gap: 25px;
+        margin-top: 15px;
+    }
+
+    svg.option {
+        background: white;
+        border: 3px solid transparent;
+        border-radius: 12px;
+        transition: 0.15s;
+    }
+    svg.option:hover { transform: scale(1.06); }
+    .selected { border-color: black !important; }
+
+    .resultShapes {
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        gap:60px;
+        margin-top:20px;
+    }
+
+    svg text {
+        pointer-events: none; /* labels not clickable/selectable */
+    }
+
+    #level2Container svg,
+    #level3Container svg {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fafafa;
+    }
+
+    .results-table {
+        border-collapse: collapse;
+        margin: 10px auto 30px;
+        width: 80%;
+        font-size: 16px;
+    }
+    .results-table td {
+        border-bottom: 1px solid #ccc;
+        padding: 8px 10px;
+    }
+    .results-table td:first-child {
+        font-weight: 700;
+        width: 45%;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- INTRO -->
+<div id="intro" class="screen active">
+    <div style="text-align:center; margin-top:10%">
+        <h1 style="font-size:60px;">PolyMind</h1>
+        <h3>Spatial Cognitive Assessment</h3>
+        <button onclick="showScreen('instructions')">Begin</button>
+    </div>
+</div>
+
+<!-- LEVEL 1 INTRO -->
+<div id="instructions" class="screen">
+    <div style="text-align:center; margin-top:10%">
+        <h2>Level 1 Instructions</h2>
+        <p>
+            Match the polygon on the left to the identical polygon on the right.<br>
+            It may be flipped or rotated. Select the correct shape and submit.
+        </p>
+        <button onclick="startLevel1()">Start Level 1</button>
+    </div>
+</div>
+
+<!-- LEVEL 1 -->
+<div id="level1" class="screen">
+    <div style="text-align:center;">
+        <h2>Level 1</h2>
+        <p id="levelText">Task: Choose the flipped shape</p>
+    </div>
+    <div id="questionContainer"></div>
+    <div style="text-align:center;">
+        <button onclick="submitAnswer()">Submit</button>
+    </div>
+</div>
+
+<!-- LEVEL 1 RESULTS -->
+<div id="results" class="screen">
+    <div style="text-align:center; margin-top:5%">
+        <h2>Level 1 Results</h2>
+        <div id="summary" style="font-size:20px;"></div>
+        <button onclick="showScreen('level2Intro')">Go to Level 2</button>
+    </div>
+</div>
+
+<!-- LEVEL 2 INTRO -->
+<div id="level2Intro" class="screen">
+    <div style="text-align:center; margin-top:10%">
+        <h2>Level 2 Instructions</h2>
+        <p>
+            You will briefly see a polygon (up to 7 vertices) for 5 seconds.<br>
+            Then it will disappear and you will see only labeled points (1, 2, 3, ...).<br><br>
+            Draw edges by pressing on a vertex and releasing on another.<br>
+            Click an existing edge to erase it.<br><br>
+            You may use up to 3 hints (15 seconds between hints).
+        </p>
+        <button onclick="startLevel2()">Start Level 2</button>
+    </div>
+</div>
+
+<!-- LEVEL 2 -->
+<div id="level2" class="screen">
+    <div style="text-align:center;">
+        <h2>Level 2</h2>
+        <p id="level2Text">Memorize the polygon.</p>
+    </div>
+    <div id="level2Container" style="display:flex; justify-content:center; margin-top:20px;"></div>
+    <div style="text-align:center; margin-top:20px;">
+        <button id="hintBtn" onclick="useHint()" disabled>Hint</button>
+        <button id="submitL2Btn" onclick="submitLevel2()" disabled>Submit</button>
+        <div id="hintInfo" style="margin-top:10px; font-size:14px; color:#555;"></div>
+    </div>
+</div>
+
+<!-- LEVEL 2 RESULTS -->
+<div id="results2" class="screen">
+    <div style="text-align:center; margin-top:5%">
+        <h2>Level 2 Results</h2>
+        <div id="summary2" style="max-width:800px; margin:0 auto;"></div>
+        <button onclick="showScreen('level3Intro')">Go to Level 3</button>
+    </div>
+</div>
+
+<!-- LEVEL 3 INTRO -->
+<div id="level3Intro" class="screen">
+    <div style="text-align:center; margin-top:10%">
+        <h2>Level 3 Instructions</h2>
+        <p>
+            Same as Level 2, but without any labels on the points.<br><br>
+            You will see a more complex polygon (8–9 vertices) for 5 seconds.<br>
+            Then you must reconstruct it by connecting the points.<br><br>
+            Draw edges by pressing on a vertex and releasing on another.<br>
+            Click an existing edge to erase it. Up to 3 hints (15s gap) per round.
+        </p>
+        <button onclick="startLevel3()">Start Level 3</button>
+    </div>
+</div>
+
+<!-- LEVEL 3 -->
+<div id="level3" class="screen">
+    <div style="text-align:center;">
+        <h2>Level 3</h2>
+        <p id="level3Text">Memorize the polygon.</p>
+    </div>
+    <div id="level3Container" style="display:flex; justify-content:center; margin-top:20px;"></div>
+    <div style="text-align:center; margin-top:20px;">
+        <button id="hintBtn3" onclick="useHint3()" disabled>Hint</button>
+        <button id="submitL3Btn" onclick="submitLevel3()" disabled>Submit</button>
+        <div id="hintInfo3" style="margin-top:10px; font-size:14px; color:#555;"></div>
+    </div>
+</div>
+
+<!-- LEVEL 3 RESULTS -->
+<div id="results3" class="screen">
+    <div style="text-align:center; margin-top:5%">
+        <h2>Level 3 Results</h2>
+        <div id="summary3" style="max-width:800px; margin:0 auto;"></div>
+        <button onclick="alert('Assessment complete!')">Finish</button>
+    </div>
+</div>
+
+<script>
+/* ============ UTILITIES ============ */
+function shuffle(arr){
+  return arr.map(v=>({v,sort:Math.random()}))
+            .sort((a,b)=>a.sort-b.sort)
+            .map(x=>x.v);
+}
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function extractInner(full){
+  return full.replace(/<svg[^>]*>/,"").replace("</svg>","");
+}
+
+/* ============ LEVEL 1 DATA ============ */
+const flipProblems = [
+  {target:`<polygon points="50,10 85,40 70,90 30,90 15,40"/>`,
+   correct:`<g transform="scale(-1,1) translate(-100,0)"><polygon points="50,10 85,40 70,90 30,90 15,40"/></g>`},
+  {target:`<polygon points="40,10 80,40 70,85 25,85 15,40"/>`,
+   correct:`<g transform="scale(-1,1) translate(-100,0)"><polygon points="40,10 80,40 70,85 25,85 15,40"/></g>`},
+  {target:`<polygon points="30,15 70,15 85,45 50,85 15,45"/>`,
+   correct:`<g transform="scale(-1,1) translate(-100,0)"><polygon points="30,15 70,15 85,45 50,85 15,45"/></g>`}
+];
+
+const rotationProblems = [
+  {target:`<polygon points="50,10 85,35 70,80 30,80 15,35"/>`,
+   correct:`<g transform="rotate(90 50 50)"><polygon points="50,10 85,35 70,80 30,80 15,35"/></g>`},
+  {target:`<polygon points="40,10 90,60 50,90 10,60"/>`,
+   correct:`<g transform="rotate(60 50 50)"><polygon points="40,10 90,60 50,90 10,60"/></g>`}
+];
+
+const distractors = [
+  `<polygon points="20,20 80,20 80,80 20,80"/>`,
+  `<polygon points="50,15 85,75 15,75"/>`,
+  `<polygon points="15,60 80,30 60,90"/>`
+];
+
+/* ============ LEVEL 1 STATE ============ */
+let stage="flip";
+let selectedElement=null;
+let flipStart, flipEnd, rotationStart, rotationEnd;
+let flipCorrect, rotationCorrect;
+let flipCorrectSvg, rotationCorrectSvg;
+let flipMistake=null, rotationMistake=null;
+
+/* ============ LEVEL 1 LOGIC ============ */
+function startLevel1(){
+  stage="flip";
+  selectedElement=null;
+  flipMistake=null;
+  rotationMistake=null;
+  flipStart = performance.now();
+  document.getElementById("levelText").innerText = "Task: Choose the flipped shape";
+  showScreen("level1");
+  loadQuestion();
+}
+
+function loadQuestion(){
+  selectedElement=null;
+
+  const problem = stage==="flip"
+    ? flipProblems[Math.floor(Math.random()*flipProblems.length)]
+    : rotationProblems[Math.floor(Math.random()*rotationProblems.length)];
+
+  if(stage==="flip") flipCorrectSvg = problem.correct;
+  else rotationCorrectSvg = problem.correct;
+
+  const options = shuffle([
+    {svg: problem.correct, correct:true},
+    ...shuffle(distractors).slice(0,3).map(d=>({svg:d, correct:false}))
+  ]);
+
+  document.getElementById("questionContainer").innerHTML = `
+    <div class="question">
+      <div class="panel">
+        <svg width="260" height="260" viewBox="0 0 100 100" stroke="black" fill="none" stroke-width="3">
+          ${problem.target}
+        </svg>
+      </div>
+      <div class="panel">
+        <div class="options">
+          ${options.map(o => `
+            <svg class="option"
+                 width="160" height="160"
+                 viewBox="0 0 100 100"
+                 stroke="black" fill="none" stroke-width="3"
+                 data-correct="${o.correct}"
+                 onclick="selectOption(this)">
+              ${o.svg}
+            </svg>`).join("")}
+        </div>
+      </div>
+    </div>`;
+}
+
+function selectOption(el){
+  document.querySelectorAll(".option").forEach(s=>s.classList.remove("selected"));
+  selectedElement = el;
+  el.classList.add("selected");
+}
+
+function submitAnswer(){
+  if(!selectedElement) return;
+  const isCorrect = selectedElement.dataset.correct === "true";
+  const now = performance.now();
+
+  if(stage==="flip"){
+    flipEnd = now;
+    flipCorrect = isCorrect;
+    if(!isCorrect) flipMistake = selectedElement.outerHTML;
+    stage = "rotation";
+    rotationStart = performance.now();
+    document.getElementById("levelText").innerText = "Task: Choose the rotated shape";
+    loadQuestion();
+  } else {
+    rotationEnd = now;
+    rotationCorrect = isCorrect;
+    if(!isCorrect) rotationMistake = selectedElement.outerHTML;
+    endLevel1();
+  }
+}
+
+function endLevel1(){
+  const flipTime = ((flipEnd - flipStart)/1000).toFixed(2);
+  const rotationTime = ((rotationEnd - rotationStart)/1000).toFixed(2);
+
+  document.getElementById("summary").innerHTML = `
+    <strong>Round 1 — Flip</strong><br>
+    Result: ${flipCorrect ? "Correct" : "Wrong"}<br>
+    Time: ${flipTime} sec<br>
+    ${flipMistake ? `
+      <div class="resultShapes">
+        <div>
+          Original:<br>
+          <svg viewBox="0 0 100 100" width="160" height="160" stroke="black" fill="none" stroke-width="3">
+            ${flipCorrectSvg}
+          </svg>
+        </div>
+        <div>
+          Mistake:<br>
+          <svg viewBox="0 0 100 100" width="160" height="160" stroke="black" fill="none" stroke-width="3">
+            ${extractInner(flipMistake)}
+          </svg>
+        </div>
+      </div><br>` : "No mistake<br><br>"}
+
+    <strong>Round 2 — Rotation</strong><br>
+    Result: ${rotationCorrect ? "Correct" : "Wrong"}<br>
+    Time: ${rotationTime} sec<br>
+    ${rotationMistake ? `
+      <div class="resultShapes">
+        <div>
+          Original:<br>
+          <svg viewBox="0 0 100 100" width="160" height="160" stroke="black" fill="none" stroke-width="3">
+            ${rotationCorrectSvg}
+          </svg>
+        </div>
+        <div>
+          Mistake:<br>
+          <svg viewBox="0 0 100 100" width="160" height="160" stroke="black" fill="none" stroke-width="3">
+            ${extractInner(rotationMistake)}
+          </svg>
+        </div>
+      </div>` : "No mistake"}
+  `;
+  showScreen("results");
+}
+
+/* ============ LEVEL 2 DATA ============ */
+const level2Polygons = [
+  {
+    vertices: [
+      {x:20,y:20},{x:80,y:20},{x:90,y:50},
+      {x:70,y:85},{x:30,y:85},{x:10,y:50}
+    ]
+  },
+  {
+    vertices: [
+      {x:25,y:15},{x:75,y:15},{x:90,y:45},
+      {x:70,y:80},{x:40,y:90},{x:15,y:60},{x:15,y:35}
+    ]
+  }
+];
+
+/* ============ LEVEL 2 STATE ============ */
+let l2RoundIndex = 0;
+let l2Results = [];
+let l2CurrentEdges = [];   // {i,j,viaHint}
+let l2EdgeHistory = [];    // for order metric
+let l2HintsUsed = 0;
+let l2LastHintTime = 0;
+let l2ErasedEdges = 0;
+let l2DragStartIndex = null;
+let l2RoundStartTime = 0;
+let l2ViewingTimeoutId = null;
+
+/* ============ LEVEL 2 FLOW ============ */
+function startLevel2(){
+  l2RoundIndex = 0;
+  l2Results = [];
+  showScreen("level2");
+  startLevel2Round();
+}
+
+function startLevel2Round(){
+  const poly = level2Polygons[l2RoundIndex];
+  const vertices = poly.vertices;
+
+  l2CurrentEdges = [];
+  l2EdgeHistory = [];
+  l2HintsUsed = 0;
+  l2LastHintTime = 0;
+  l2ErasedEdges = 0;
+  l2DragStartIndex = null;
+
+  const hintBtn = document.getElementById("hintBtn");
+  const submitBtn = document.getElementById("submitL2Btn");
+  const hintInfo = document.getElementById("hintInfo");
+
+  hintBtn.disabled = true;
+  submitBtn.disabled = true;
+  hintInfo.textContent = "Memorize the polygon (5 seconds).";
+  document.getElementById("level2Text").textContent = "Memorize the polygon.";
+
+  document.getElementById("level2Container").innerHTML = `
+    <svg id="level2Svg" viewBox="0 0 100 100" width="400" height="400">
+      <polygon points="${vertices.map(v=>`${v.x},${v.y}`).join(" ")}"
+               fill="none" stroke="black" stroke-width="2"/>
+    </svg>
+  `;
+
+  if(l2ViewingTimeoutId) clearTimeout(l2ViewingTimeoutId);
+  l2ViewingTimeoutId = setTimeout(()=> {
+    startReconstruction(vertices);
+  }, 5000);
+}
+
+function startReconstruction(vertices){
+  document.getElementById("level2Text").textContent = "Reconstruct the polygon.";
+  document.getElementById("hintBtn").disabled = false;
+  document.getElementById("submitL2Btn").disabled = false;
+  document.getElementById("hintInfo").textContent = "You can use up to 3 hints (15s gap).";
+
+  l2RoundStartTime = performance.now();
+  renderLevel2Svg(vertices);
+}
+
+function renderLevel2Svg(vertices){
+  const container = document.getElementById("level2Container");
+
+  const linesHtml = l2CurrentEdges.map((e,idx)=>{
+    const a=vertices[e.i], b=vertices[e.j];
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"
+                  stroke="black" stroke-width="2"
+                  data-index="${idx}" />`;
+  }).join("");
+
+  const pointsHtml = vertices.map((v,idx)=>`
+    <g>
+      <circle cx="${v.x}" cy="${v.y}" r="3.5" fill="black"
+              data-vertex="${idx}"
+              style="cursor:pointer; pointer-events:auto;" />
+      <text x="${v.x+3}" y="${v.y-3}" font-size="5" fill="black">${idx+1}</text>
+    </g>`).join("");
+
+  container.innerHTML = `
+    <svg id="level2Svg" viewBox="0 0 100 100" width="400" height="400">
+      ${linesHtml}
+      ${pointsHtml}
+    </svg>
+  `;
+
+  const svg = document.getElementById("level2Svg");
+
+  svg.querySelectorAll("line").forEach(line=>{
+    line.addEventListener("click", ()=>{
+      const index = parseInt(line.getAttribute("data-index"),10);
+      if(!isNaN(index)){
+        l2CurrentEdges.splice(index,1);
+        l2ErasedEdges++;
+        renderLevel2Svg(vertices);
+      }
+    });
+  });
+
+  svg.querySelectorAll("circle").forEach(circle=>{
+    const idx = parseInt(circle.getAttribute("data-vertex"),10);
+
+    circle.addEventListener("mousedown", ()=>{
+      l2DragStartIndex = idx;
+    });
+
+    circle.addEventListener("mouseup", ()=>{
+      if(l2DragStartIndex !== null && l2DragStartIndex !== idx){
+        addL2Edge(l2DragStartIndex, idx, vertices, false);
+      }
+      l2DragStartIndex = null;
+    });
+  });
+}
+
+function addL2Edge(i,j,vertices, viaHint){
+  if(l2CurrentEdges.some(e => (e.i===i && e.j===j) || (e.i===j && e.j===i))) return;
+  l2CurrentEdges.push({i,j,viaHint});
+  l2EdgeHistory.push({i,j,viaHint});
+  renderLevel2Svg(vertices);
+}
+
+function useHint(){
+  const now = Date.now();
+  const hintInfo = document.getElementById("hintInfo");
+  const poly = level2Polygons[l2RoundIndex];
+  const vertices = poly.vertices;
+  const n = vertices.length;
+
+  if(l2HintsUsed >= 3){
+    hintInfo.textContent = "Maximum hints used.";
+    return;
+  }
+  if(l2LastHintTime && now - l2LastHintTime < 15000){
+    const remain = Math.ceil((15000 - (now - l2LastHintTime))/1000);
+    hintInfo.textContent = `Next hint in ${remain}s`;
+    return;
+  }
+
+  const trueEdges = [];
+  for(let k=0;k<n;k++){
+    const a=k, b=(k+1)%n;
+    const ii=Math.min(a,b), jj=Math.max(a,b);
+    trueEdges.push({i:ii,j:jj});
+  }
+
+  let chosen=null;
+  for(const e of trueEdges){
+    if(!l2CurrentEdges.some(x=>{
+      const xi=Math.min(x.i,x.j), xj=Math.max(x.i,x.j);
+      return xi===e.i && xj===e.j;
+    })){
+      chosen=e; break;
+    }
+  }
+
+  if(!chosen){
+    hintInfo.textContent = "All edges already revealed.";
+    return;
+  }
+
+  l2HintsUsed++;
+  l2LastHintTime = now;
+  let start = chosen.i;
+  let end   = chosen.j;
+  addL2Edge(start, end, vertices, true);
+  hintInfo.textContent = `Hints used: ${l2HintsUsed}/3`;
+}
+
+/* -------- L2 helpers -------- */
+function isClosedPolygonL2(vertices){
+  const n = vertices.length;
+  if(l2CurrentEdges.length === 0) return false;
+  const deg = Array(n).fill(0);
+  for(const e of l2CurrentEdges){
+    deg[e.i]++; deg[e.j]++;
+  }
+  return deg.every(d => d >= 2);
+}
+
+function checkFollowOrder(n){
+  const seq = l2EdgeHistory.filter(e => !e.viaHint);
+  if(seq.length === 0) return false;
+
+  for(let s0=0; s0<n; s0++){
+    let ok = true;
+    for(let k=0; k<seq.length; k++){
+      const expectedStart = (s0 + k) % n;
+      const expectedEnd   = (expectedStart + 1) % n;
+      const e = seq[k];
+      if(e.i !== expectedStart || e.j !== expectedEnd){
+        ok = false; break;
+      }
+    }
+    if(ok) return true;
+  }
+  return false;
+}
+
+function segmentsIntersect(p1,p2,p3,p4){
+  function orient(p,q,r){
+    const val = (q.y-p.y)*(r.x-q.x) - (q.x-p.x)*(r.y-q.y);
+    if(val===0) return 0;
+    return val>0 ? 1 : 2;
+  }
+  const o1=orient(p1,p2,p3);
+  const o2=orient(p1,p2,p4);
+  const o3=orient(p3,p4,p1);
+  const o4=orient(p3,p4,p2);
+  if(o1!==o2 && o3!==o4) return true;
+  return false;
+}
+
+function edgesIntersect(e1,e2,vertices){
+  const a=e1.i,b=e1.j,c=e2.i,d=e2.j;
+  if(a===c||a===d||b===c||b===d) return false;
+  const p1=vertices[a], p2=vertices[b], p3=vertices[c], p4=vertices[d];
+  return segmentsIntersect(p1,p2,p3,p4);
+}
+
+function submitLevel2(){
+  const poly = level2Polygons[l2RoundIndex];
+  const vertices = poly.vertices;
+  const n = vertices.length;
+
+  const end = performance.now();
+  const timeTaken = ((end - l2RoundStartTime)/1000).toFixed(2);
+
+  const trueEdges = [];
+  for(let k=0;k<n;k++){
+    const a=k, b=(k+1)%n;
+    const ii=Math.min(a,b), jj=Math.max(a,b);
+    trueEdges.push(`${ii}-${jj}`);
+  }
+  const trueSet = new Set(trueEdges);
+
+  const userEdges = l2CurrentEdges.map(e=>{
+    const ii=Math.min(e.i,e.j), jj=Math.max(e.i,e.j);
+    return `${ii}-${jj}`;
+  });
+  const userSet = new Set(userEdges);
+
+  let missing=0, wrong=0;
+  for(const t of trueEdges) if(!userSet.has(t)) missing++;
+  for(const u of userEdges) if(!trueSet.has(u)) wrong++;
+
+  let intersect=false;
+  for(let i=0;i<l2CurrentEdges.length;i++){
+    for(let j=i+1;j<l2CurrentEdges.length;j++){
+      if(edgesIntersect(l2CurrentEdges[i],l2CurrentEdges[j],vertices)){
+        intersect = true; break;
+      }
+    }
+    if(intersect) break;
+  }
+
+  const closed = isClosedPolygonL2(vertices);
+  const followOrder = checkFollowOrder(n);
+  const correct = (missing===0 && wrong===0 && !intersect && closed);
+
+  l2Results.push({
+    correct,
+    time: timeTaken,
+    hints: l2HintsUsed,
+    missing,
+    wrong,
+    intersect,
+    erased: l2ErasedEdges,
+    followOrder,
+    closed
+  });
+
+  if(l2RoundIndex === level2Polygons.length - 1){
+    endLevel2();
+  } else {
+    l2RoundIndex++;
+    startLevel2Round();
+  }
+}
+
+function endLevel2(){
+  let html = "";
+  l2Results.forEach((r,i)=>{
+    html += `
+      <h3 style="text-align:center;">Round ${i+1}</h3>
+      <table class="results-table">
+        <tr><td>Result</td><td>${r.correct ? "Correct" : "Wrong"}</td></tr>
+        <tr><td>Time Taken</td><td>${r.time} sec</td></tr>
+        <tr><td>Hints Used</td><td>${r.hints}</td></tr>
+        <tr><td>Edges Missing</td><td>${r.missing}</td></tr>
+        <tr><td>Edges Wrong</td><td>${r.wrong}</td></tr>
+        <tr><td>Any Intersections</td><td>${r.intersect ? "Yes" : "No"}</td></tr>
+        <tr><td>Closed Shape</td><td>${r.closed ? "Yes" : "No"}</td></tr>
+        <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
+        <tr><td>Followed Label Order</td><td>${r.followOrder ? "Yes" : "No"}</td></tr>
+      </table>
+    `;
+  });
+
+  document.getElementById("summary2").innerHTML = html;
+  showScreen("results2");
+}
+
+/* ============ LEVEL 3 DATA (more complex polygons) ============ */
+const level3Polygons = [
+  {
+    // 10 vertices, 3 concave points
+    vertices: [
+      {x:18,y:12}, {x:60,y:10}, {x:90,y:28}, 
+      {x:83,y:50}, {x:95,y:70}, 
+      {x:72,y:88}, {x:42,y:95}, 
+      {x:28,y:80}, {x:35,y:58},  // concave inward
+      {x:12,y:40}                // concave inward
+    ]
+  },
+  {
+    // 9 vertices, multiple reflex angles
+    vertices: [
+      {x:20,y:18}, {x:55,y:12}, {x:88,y:22}, 
+      {x:92,y:48},
+      {x:78,y:78}, {x:48,y:92},
+      {x:28,y:74}, {x:18,y:60}, 
+      {x:30,y:42} // deep concave
+    ]
+  }
+];
+
+/* ============ LEVEL 3 STATE ============ */
+let l3RoundIndex = 0;
+let l3Results = [];
+let l3CurrentEdges = [];
+let l3HintsUsed = 0;
+let l3LastHintTime = 0;
+let l3ErasedEdges = 0;
+let l3DragStartIndex = null;
+let l3RoundStartTime = 0;
+let l3ViewingTimeoutId = null;
+
+/* ============ LEVEL 3 FLOW ============ */
+function startLevel3(){
+  l3RoundIndex = 0;
+  l3Results = [];
+  showScreen("level3");
+  startLevel3Round();
+}
+
+function startLevel3Round(){
+  const poly = level3Polygons[l3RoundIndex];
+  const vertices = poly.vertices;
+
+  l3CurrentEdges = [];
+  l3HintsUsed = 0;
+  l3LastHintTime = 0;
+  l3ErasedEdges = 0;
+  l3DragStartIndex = null;
+
+  const hintBtn = document.getElementById("hintBtn3");
+  const submitBtn = document.getElementById("submitL3Btn");
+  const hintInfo = document.getElementById("hintInfo3");
+
+  hintBtn.disabled = true;
+  submitBtn.disabled = true;
+  hintInfo.textContent = "Memorize the polygon (5 seconds).";
+  document.getElementById("level3Text").textContent = "Memorize the polygon.";
+
+  document.getElementById("level3Container").innerHTML = `
+    <svg id="level3Svg" viewBox="0 0 100 100" width="400" height="400">
+      <polygon points="${vertices.map(v=>`${v.x},${v.y}`).join(" ")}"
+               fill="none" stroke="black" stroke-width="2"/>
+    </svg>
+  `;
+
+  if(l3ViewingTimeoutId) clearTimeout(l3ViewingTimeoutId);
+  l3ViewingTimeoutId = setTimeout(()=> {
+    startL3Reconstruction(vertices);
+  }, 5000);
+}
+
+function startL3Reconstruction(vertices){
+  document.getElementById("level3Text").textContent = "Reconstruct the polygon.";
+  document.getElementById("hintBtn3").disabled = false;
+  document.getElementById("submitL3Btn").disabled = false;
+  document.getElementById("hintInfo3").textContent = "You can use up to 3 hints (15s gap).";
+
+  l3RoundStartTime = performance.now();
+  renderLevel3Svg(vertices);
+}
+
+function renderLevel3Svg(vertices){
+  const container = document.getElementById("level3Container");
+
+  const linesHtml = l3CurrentEdges.map((e,idx)=>{
+    const a=vertices[e.i], b=vertices[e.j];
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"
+                  stroke="black" stroke-width="2"
+                  data-index="${idx}" />`;
+  }).join("");
+
+  const pointsHtml = vertices.map((v,idx)=>`
+    <circle cx="${v.x}" cy="${v.y}" r="3.5" fill="black"
+            data-vertex="${idx}"
+            style="cursor:pointer; pointer-events:auto;" />
+  `).join("");
+
+  container.innerHTML = `
+    <svg id="level3Svg" viewBox="0 0 100 100" width="400" height="400">
+      ${linesHtml}
+      ${pointsHtml}
+    </svg>
+  `;
+
+  const svg = document.getElementById("level3Svg");
+
+  svg.querySelectorAll("line").forEach(line=>{
+    line.addEventListener("click", ()=>{
+      const index = parseInt(line.getAttribute("data-index"),10);
+      if(!isNaN(index)){
+        l3CurrentEdges.splice(index,1);
+        l3ErasedEdges++;
+        renderLevel3Svg(vertices);
+      }
+    });
+  });
+
+  svg.querySelectorAll("circle").forEach(circle=>{
+    const idx = parseInt(circle.getAttribute("data-vertex"),10);
+
+    circle.addEventListener("mousedown", ()=>{
+      l3DragStartIndex = idx;
+    });
+
+    circle.addEventListener("mouseup", ()=>{
+      if(l3DragStartIndex !== null && l3DragStartIndex !== idx){
+        addL3Edge(l3DragStartIndex, idx, vertices);
+      }
+      l3DragStartIndex = null;
+    });
+  });
+}
+
+function addL3Edge(i,j,vertices){
+  if(l3CurrentEdges.some(e => (e.i===i && e.j===j) || (e.i===j && e.j===i))) return;
+  l3CurrentEdges.push({i,j});
+  renderLevel3Svg(vertices);
+}
+
+function useHint3(){
+  const now = Date.now();
+  const hintInfo = document.getElementById("hintInfo3");
+  const poly = level3Polygons[l3RoundIndex];
+  const vertices = poly.vertices;
+  const n = vertices.length;
+
+  if(l3HintsUsed >= 3){
+    hintInfo.textContent = "Maximum hints used.";
+    return;
+  }
+  if(l3LastHintTime && now - l3LastHintTime < 15000){
+    const remain = Math.ceil((15000 - (now - l3LastHintTime))/1000);
+    hintInfo.textContent = `Next hint in ${remain}s`;
+    return;
+  }
+
+  const trueEdges = [];
+  for(let k=0;k<n;k++){
+    const a=k, b=(k+1)%n;
+    const ii=Math.min(a,b), jj=Math.max(a,b);
+    trueEdges.push({i:ii,j:jj});
+  }
+
+  let chosen=null;
+  for(const e of trueEdges){
+    if(!l3CurrentEdges.some(x=>{
+      const xi=Math.min(x.i,x.j), xj=Math.max(x.i,x.j);
+      return xi===e.i && xj===e.j;
+    })){
+      chosen=e; break;
+    }
+  }
+
+  if(!chosen){
+    hintInfo.textContent = "All edges already revealed.";
+    return;
+  }
+
+  l3HintsUsed++;
+  l3LastHintTime = now;
+  addL3Edge(chosen.i, chosen.j, vertices);
+  hintInfo.textContent = `Hints used: ${l3HintsUsed}/3`;
+}
+
+function isClosedPolygonL3(vertices){
+  const n = vertices.length;
+  if(l3CurrentEdges.length === 0) return false;
+  const deg = Array(n).fill(0);
+  for(const e of l3CurrentEdges){
+    deg[e.i]++; deg[e.j]++;
+  }
+  return deg.every(d => d >= 2);
+}
+
+function submitLevel3(){
+  const poly = level3Polygons[l3RoundIndex];
+  const vertices = poly.vertices;
+  const n = vertices.length;
+
+  const end = performance.now();
+  const timeTaken = ((end - l3RoundStartTime)/1000).toFixed(2);
+
+  const trueEdges = [];
+  for(let k=0;k<n;k++){
+    const a=k, b=(k+1)%n;
+    const ii=Math.min(a,b), jj=Math.max(a,b);
+    trueEdges.push(`${ii}-${jj}`);
+  }
+  const trueSet = new Set(trueEdges);
+
+  const userEdges = l3CurrentEdges.map(e=>{
+    const ii=Math.min(e.i,e.j), jj=Math.max(e.i,e.j);
+    return `${ii}-${jj}`;
+  });
+  const userSet = new Set(userEdges);
+
+  let missing=0, wrong=0;
+  for(const t of trueEdges) if(!userSet.has(t)) missing++;
+  for(const u of userEdges) if(!trueSet.has(u)) wrong++;
+
+  let intersect=false;
+  for(let i=0;i<l3CurrentEdges.length;i++){
+    for(let j=i+1;j<l3CurrentEdges.length;j++){
+      if(edgesIntersect(l3CurrentEdges[i],l3CurrentEdges[j],vertices)){
+        intersect = true; break;
+      }
+    }
+    if(intersect) break;
+  }
+
+  const closed = isClosedPolygonL3(vertices);
+  const correct = (missing===0 && wrong===0 && !intersect && closed);
+
+  l3Results.push({
+    correct,
+    time: timeTaken,
+    hints: l3HintsUsed,
+    missing,
+    wrong,
+    intersect,
+    erased: l3ErasedEdges,
+    closed
+  });
+
+  if(l3RoundIndex === level3Polygons.length - 1){
+    endLevel3();
+  } else {
+    l3RoundIndex++;
+    startLevel3Round();
+  }
+}
+
+function endLevel3(){
+  let html = "";
+  l3Results.forEach((r,i)=>{
+    html += `
+      <h3 style="text-align:center;">Round ${i+1}</h3>
+      <table class="results-table">
+        <tr><td>Result</td><td>${r.correct ? "Correct" : "Wrong"}</td></tr>
+        <tr><td>Time Taken</td><td>${r.time} sec</td></tr>
+        <tr><td>Hints Used</td><td>${r.hints}</td></tr>
+        <tr><td>Edges Missing</td><td>${r.missing}</td></tr>
+        <tr><td>Edges Wrong</td><td>${r.wrong}</td></tr>
+        <tr><td>Any Intersections</td><td>${r.intersect ? "Yes" : "No"}</td></tr>
+        <tr><td>Closed Shape</td><td>${r.closed ? "Yes" : "No"}</td></tr>
+        <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
+      </table>
+    `;
+  });
+
+  document.getElementById("summary3").innerHTML = html;
+  showScreen("results3");
+}
+</script>
+
+</body>
+</html>
