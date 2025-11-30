@@ -479,13 +479,18 @@ function endLevel1(){
     ? rotationActionIntervals[rotationActionIntervals.length - 1].toFixed(2)
     : "N/A";
 
-  document.getElementById("summary").innerHTML = `
-    <strong>Round 1 — Flip</strong><br>
-    Result: ${flipCorrect ? "Correct" : "Wrong"}<br>
-    Time: ${flipTime} sec<br>
-    Avg time between actions: ${flipAvgInterval} sec<br>
-    Time before submit: ${flipTimeBeforeSubmit} sec<br>
-    ${flipMistake ? `
+  let html = `
+    <h3 style="text-align:center;">Round 1 — Flip</h3>
+    <table class="results-table">
+      <tr><td>Result</td><td>${flipCorrect ? "Correct" : "Wrong"}</td></tr>
+      <tr><td>Time Taken</td><td>${flipTime} sec</td></tr>
+      <tr><td>Avg Time Between Actions</td><td>${flipAvgInterval} sec</td></tr>
+      <tr><td>Time Before Submit</td><td>${flipTimeBeforeSubmit} sec</td></tr>
+    </table>
+  `;
+
+  if(flipMistake) {
+    html += `
       <div class="resultShapes">
         <div>
           Original:<br>
@@ -499,14 +504,22 @@ function endLevel1(){
             ${extractInner(flipMistake)}
           </svg>
         </div>
-      </div><br>` : "No mistake<br><br>"}
+      </div>
+    `;
+  }
 
-    <strong>Round 2 — Rotation</strong><br>
-    Result: ${rotationCorrect ? "Correct" : "Wrong"}<br>
-    Time: ${rotationTime} sec<br>
-    Avg time between actions: ${rotationAvgInterval} sec<br>
-    Time before submit: ${rotationTimeBeforeSubmit} sec<br>
-    ${rotationMistake ? `
+  html += `
+    <h3 style="text-align:center;">Round 2 — Rotation</h3>
+    <table class="results-table">
+      <tr><td>Result</td><td>${rotationCorrect ? "Correct" : "Wrong"}</td></tr>
+      <tr><td>Time Taken</td><td>${rotationTime} sec</td></tr>
+      <tr><td>Avg Time Between Actions</td><td>${rotationAvgInterval} sec</td></tr>
+      <tr><td>Time Before Submit</td><td>${rotationTimeBeforeSubmit} sec</td></tr>
+    </table>
+  `;
+
+  if(rotationMistake) {
+    html += `
       <div class="resultShapes">
         <div>
           Original:<br>
@@ -520,8 +533,11 @@ function endLevel1(){
             ${extractInner(rotationMistake)}
           </svg>
         </div>
-      </div>` : "No mistake"}
-  `;
+      </div>
+    `;
+  }
+
+  document.getElementById("summary").innerHTML = html;
   showScreen("results");
 }
 
