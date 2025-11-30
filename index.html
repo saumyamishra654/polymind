@@ -89,7 +89,9 @@
     }
 
     #level2Container svg,
-    #level3Container svg {
+    #level3Container svg,
+    #level4Container svg,
+    #level5Container svg {
         border: 1px solid #ddd;
         border-radius: 8px;
         background: #fafafa;
@@ -228,6 +230,83 @@
     <div style="text-align:center; margin-top:5%">
         <h2>Level 3 Results</h2>
         <div id="summary3" style="max-width:800px; margin:0 auto;"></div>
+        <button onclick="showScreen('level4Intro')">Go to Level 4</button>
+    </div>
+</div>
+
+<!-- LEVEL 4 INTRO -->
+<div id="level4Intro" class="screen">
+    <div style="text-align:center; margin-top:10%">
+        <h2>Level 4 Instructions</h2>
+        <p>
+            You will see a nested shape: a larger shape with a smaller version of the same shape inside.<br><br>
+            The image will be shown for 5 seconds, then you must reconstruct BOTH shapes.<br>
+            First round uses a simple shape (triangle, square, rectangle, or pentagon).<br>
+            Second round uses a complex shape (star, concave polygon, or tree shape).<br><br>
+            Draw edges by pressing on a vertex and releasing on another.<br>
+            Click an existing edge to erase it. Up to 3 hints (15s gap) per round.
+        </p>
+        <button onclick="startLevel4()">Start Level 4</button>
+    </div>
+</div>
+
+<!-- LEVEL 4 -->
+<div id="level4" class="screen">
+    <div style="text-align:center;">
+        <h2>Level 4</h2>
+        <p id="level4Text">Memorize the nested shapes.</p>
+    </div>
+    <div id="level4Container" style="display:flex; justify-content:center; margin-top:20px;"></div>
+    <div style="text-align:center; margin-top:20px;">
+        <button id="hintBtn4" onclick="useHint4()" disabled>Hint</button>
+        <button id="submitL4Btn" onclick="submitLevel4()" disabled>Submit</button>
+        <div id="hintInfo4" style="margin-top:10px; font-size:14px; color:#555;"></div>
+    </div>
+</div>
+
+<!-- LEVEL 4 RESULTS -->
+<div id="results4" class="screen">
+    <div style="text-align:center; margin-top:5%">
+        <h2>Level 4 Results</h2>
+        <div id="summary4" style="max-width:800px; margin:0 auto;"></div>
+        <button onclick="showScreen('level5Intro')">Go to Level 5</button>
+    </div>
+</div>
+
+<!-- LEVEL 5 INTRO -->
+<div id="level5Intro" class="screen">
+    <div style="text-align:center; margin-top:10%">
+        <h2>Level 5 Instructions</h2>
+        <p>
+            You will see a field of points distributed across the canvas.<br><br>
+            Your task: Create TWO separate triangles that DO NOT touch each other.<br>
+            The triangles must not share vertices, edges, or overlap in any way.<br><br>
+            Draw edges by pressing on a vertex and releasing on another.<br>
+            Click an existing edge to erase it.<br>
+            Use different colors to see which triangle you're building (first = black, second = blue).
+        </p>
+        <button onclick="startLevel5()">Start Level 5</button>
+    </div>
+</div>
+
+<!-- LEVEL 5 -->
+<div id="level5" class="screen">
+    <div style="text-align:center;">
+        <h2>Level 5</h2>
+        <p id="level5Text">Create two separate triangles that do not touch.</p>
+    </div>
+    <div id="level5Container" style="display:flex; justify-content:center; margin-top:20px;"></div>
+    <div style="text-align:center; margin-top:20px;">
+        <button id="submitL5Btn" onclick="submitLevel5()">Submit</button>
+        <div id="level5Info" style="margin-top:10px; font-size:14px; color:#555;">Draw your first triangle (black), then your second triangle (blue).</div>
+    </div>
+</div>
+
+<!-- LEVEL 5 RESULTS -->
+<div id="results5" class="screen">
+    <div style="text-align:center; margin-top:5%">
+        <h2>Level 5 Results</h2>
+        <div id="summary5" style="max-width:800px; margin:0 auto;"></div>
         <button onclick="alert('Assessment complete!')">Finish</button>
     </div>
 </div>
@@ -801,6 +880,110 @@ function endLevel2(){
   showScreen("results2");
 }
 
+/* ============ LEVEL 5 DATA (multi-shape construction) ============ */
+const level5PointSets = [
+  {
+    // 12 scattered points
+    points: [
+      {x:15,y:20}, {x:35,y:15}, {x:25,y:35},
+      {x:50,y:25}, {x:60,y:10}, {x:70,y:30},
+      {x:20,y:65}, {x:40,y:70}, {x:30,y:85},
+      {x:75,y:60}, {x:85,y:75}, {x:90,y:50}
+    ]
+  },
+  {
+    // 15 scattered points with more options
+    points: [
+      {x:10,y:15}, {x:25,y:10}, {x:20,y:25}, {x:35,y:20},
+      {x:45,y:12}, {x:55,y:22}, {x:65,y:15}, {x:75,y:25},
+      {x:15,y:50}, {x:30,y:55}, {x:40,y:45},
+      {x:60,y:70}, {x:75,y:65}, {x:85,y:80}, {x:70,y:85}
+    ]
+  }
+];
+
+/* ============ LEVEL 4 DATA (nested shapes) ============ */
+const level4Shapes = [
+  {
+    // Simple shape: Square within square
+    name: "square",
+    outer: [
+      {x:10,y:10}, {x:90,y:10}, {x:90,y:90}, {x:10,y:90}
+    ],
+    inner: [
+      {x:30,y:30}, {x:70,y:30}, {x:70,y:70}, {x:30,y:70}
+    ]
+  },
+  {
+    // Simple shape: Triangle within triangle
+    name: "triangle",
+    outer: [
+      {x:50,y:5}, {x:95,y:85}, {x:5,y:85}
+    ],
+    inner: [
+      {x:50,y:30}, {x:70,y:65}, {x:30,y:65}
+    ]
+  },
+  {
+    // Simple shape: Pentagon within pentagon
+    name: "pentagon",
+    outer: [
+      {x:50,y:8}, {x:90,y:35}, {x:75,y:85}, {x:25,y:85}, {x:10,y:35}
+    ],
+    inner: [
+      {x:50,y:30}, {x:70,y:45}, {x:62,y:68}, {x:38,y:68}, {x:30,y:45}
+    ]
+  },
+  {
+    // Simple shape: Rectangle within rectangle
+    name: "rectangle",
+    outer: [
+      {x:15,y:20}, {x:85,y:20}, {x:85,y:80}, {x:15,y:80}
+    ],
+    inner: [
+      {x:35,y:38}, {x:65,y:38}, {x:65,y:62}, {x:35,y:62}
+    ]
+  },
+  {
+    // Complex shape: 5-pointed star within star
+    name: "star",
+    outer: [
+      {x:50,y:5}, {x:58,y:35}, {x:90,y:35}, {x:65,y:55},
+      {x:75,y:85}, {x:50,y:65}, {x:25,y:85}, {x:35,y:55},
+      {x:10,y:35}, {x:42,y:35}
+    ],
+    inner: [
+      {x:50,y:25}, {x:54,y:40}, {x:68,y:40}, {x:57,y:48},
+      {x:61,y:62}, {x:50,y:53}, {x:39,y:62}, {x:43,y:48},
+      {x:32,y:40}, {x:46,y:40}
+    ]
+  },
+  {
+    // Complex shape: Concave arrow-like shape
+    name: "concave",
+    outer: [
+      {x:20,y:20}, {x:80,y:20}, {x:80,y:45}, {x:50,y:45},
+      {x:50,y:80}, {x:35,y:80}, {x:35,y:45}, {x:20,y:45}
+    ],
+    inner: [
+      {x:35,y:30}, {x:65,y:30}, {x:65,y:40}, {x:48,y:40},
+      {x:48,y:65}, {x:42,y:65}, {x:42,y:40}, {x:35,y:40}
+    ]
+  },
+  {
+    // Complex shape: Tree (T-shape) within tree
+    name: "tree",
+    outer: [
+      {x:20,y:15}, {x:80,y:15}, {x:80,y:35}, {x:60,y:35},
+      {x:60,y:85}, {x:40,y:85}, {x:40,y:35}, {x:20,y:35}
+    ],
+    inner: [
+      {x:35,y:28}, {x:65,y:28}, {x:65,y:38}, {x:55,y:38},
+      {x:55,y:68}, {x:45,y:68}, {x:45,y:38}, {x:35,y:38}
+    ]
+  }
+];
+
 /* ============ LEVEL 3 DATA (more complex polygons) ============ */
 const level3Polygons = [
   {
@@ -837,6 +1020,30 @@ let l3RoundStartTime = 0;
 let l3ViewingTimeoutId = null;
 let l3LastActionTime = 0;
 let l3ActionIntervals = [];
+
+/* ============ LEVEL 4 STATE ============ */
+let l4RoundIndex = 0;
+let l4Results = [];
+let l4CurrentEdges = [];  // will track which shape each edge belongs to
+let l4HintsUsed = 0;
+let l4LastHintTime = 0;
+let l4ErasedEdges = 0;
+let l4DragStartIndex = null;
+let l4RoundStartTime = 0;
+let l4ViewingTimeoutId = null;
+let l4LastActionTime = 0;
+let l4ActionIntervals = [];
+let l4CurrentShapeIndices = [];  // indices into level4Shapes for current round
+
+/* ============ LEVEL 5 STATE ============ */
+let l5RoundIndex = 0;
+let l5Results = [];
+let l5CurrentEdges = [];  // {i, j, triangleNum} - triangleNum is 1 or 2
+let l5DragStartIndex = null;
+let l5RoundStartTime = 0;
+let l5LastActionTime = 0;
+let l5ActionIntervals = [];
+let l5ErasedEdges = 0;
 
 /* ============ LEVEL 3 FLOW ============ */
 function startLevel3(){
@@ -1111,6 +1318,626 @@ function endLevel3(){
 
   document.getElementById("summary3").innerHTML = html;
   showScreen("results3");
+}
+
+/* ============ LEVEL 4 FLOW ============ */
+function startLevel4(){
+  l4RoundIndex = 0;
+  l4Results = [];
+  showScreen("level4");
+  startLevel4Round();
+}
+
+function startLevel4Round(){
+  // Round 1: simple shape (0-3), Round 2: complex shape (4-6)
+  const simpleShapes = [0, 1, 2, 3];  // square, triangle, pentagon, rectangle
+  const complexShapes = [4, 5, 6];     // star, concave, tree
+  
+  const shapeIndex = l4RoundIndex === 0
+    ? simpleShapes[Math.floor(Math.random() * simpleShapes.length)]
+    : complexShapes[Math.floor(Math.random() * complexShapes.length)];
+  
+  const shape = level4Shapes[shapeIndex];
+  const outerVertices = shape.outer;
+  const innerVertices = shape.inner;
+  const totalVertices = [...outerVertices, ...innerVertices];
+
+  l4CurrentEdges = [];
+  l4HintsUsed = 0;
+  l4LastHintTime = 0;
+  l4ErasedEdges = 0;
+  l4DragStartIndex = null;
+  l4LastActionTime = 0;
+  l4ActionIntervals = [];
+  l4CurrentShapeIndices = [shapeIndex];
+
+  const hintBtn = document.getElementById("hintBtn4");
+  const submitBtn = document.getElementById("submitL4Btn");
+  const hintInfo = document.getElementById("hintInfo4");
+
+  hintBtn.disabled = true;
+  submitBtn.disabled = true;
+  hintInfo.textContent = "Memorize the nested shapes (5 seconds).";
+  document.getElementById("level4Text").textContent = `Memorize the nested shapes (${l4RoundIndex === 0 ? 'Simple' : 'Complex'}).`;
+
+  // Show both shapes
+  const outerPoints = outerVertices.map(v=>`${v.x},${v.y}`).join(" ");
+  const innerPoints = innerVertices.map(v=>`${v.x},${v.y}`).join(" ");
+  
+  document.getElementById("level4Container").innerHTML = `
+    <svg id="level4Svg" viewBox="0 0 100 100" width="500" height="500">
+      <polygon points="${outerPoints}" fill="none" stroke="black" stroke-width="2"/>
+      <polygon points="${innerPoints}" fill="none" stroke="blue" stroke-width="2"/>
+    </svg>
+  `;
+
+  if(l4ViewingTimeoutId) clearTimeout(l4ViewingTimeoutId);
+  l4ViewingTimeoutId = setTimeout(()=> {
+    startL4Reconstruction(totalVertices, outerVertices.length);
+  }, 5000);
+}
+
+function startL4Reconstruction(vertices, outerCount){
+  document.getElementById("level4Text").textContent = "Reconstruct both the outer (black) and inner (blue) shapes.";
+  document.getElementById("hintBtn4").disabled = false;
+  document.getElementById("submitL4Btn").disabled = false;
+  document.getElementById("hintInfo4").textContent = "You can use up to 3 hints (15s gap). Black dots = outer shape, Blue dots = inner shape.";
+
+  l4RoundStartTime = performance.now();
+  renderLevel4Svg(vertices, outerCount);
+}
+
+function renderLevel4Svg(vertices, outerCount){
+  const container = document.getElementById("level4Container");
+
+  const linesHtml = l4CurrentEdges.map((e,idx)=>{
+    const a=vertices[e.i], b=vertices[e.j];
+    const color = e.isOuter ? "black" : "blue";
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"
+                  stroke="${color}" stroke-width="2"
+                  data-index="${idx}" />`;
+  }).join("");
+
+  const pointsHtml = vertices.map((v,idx)=>{
+    const isOuter = idx < outerCount;
+    const color = isOuter ? "black" : "blue";
+    return `<circle cx="${v.x}" cy="${v.y}" r="3.5" fill="${color}"
+            data-vertex="${idx}"
+            style="cursor:pointer; pointer-events:auto;" />`;
+  }).join("");
+
+  container.innerHTML = `
+    <svg id="level4Svg" viewBox="0 0 100 100" width="500" height="500">
+      ${linesHtml}
+      ${pointsHtml}
+    </svg>
+  `;
+
+  const svg = document.getElementById("level4Svg");
+
+  svg.querySelectorAll("line").forEach(line=>{
+    line.addEventListener("click", ()=>{
+      const index = parseInt(line.getAttribute("data-index"),10);
+      if(!isNaN(index)){
+        l4CurrentEdges.splice(index,1);
+        l4ErasedEdges++;
+        
+        const now = performance.now();
+        if(l4LastActionTime > 0){
+          l4ActionIntervals.push((now - l4LastActionTime)/1000);
+        }
+        l4LastActionTime = now;
+        
+        renderLevel4Svg(vertices, outerCount);
+      }
+    });
+  });
+
+  svg.querySelectorAll("circle").forEach(circle=>{
+    const idx = parseInt(circle.getAttribute("data-vertex"),10);
+
+    circle.addEventListener("mousedown", ()=>{
+      l4DragStartIndex = idx;
+    });
+
+    circle.addEventListener("mouseup", ()=>{
+      if(l4DragStartIndex !== null && l4DragStartIndex !== idx){
+        addL4Edge(l4DragStartIndex, idx, vertices, outerCount);
+      }
+      l4DragStartIndex = null;
+    });
+  });
+}
+
+function addL4Edge(i,j,vertices, outerCount){
+  if(l4CurrentEdges.some(e => (e.i===i && e.j===j) || (e.i===j && e.j===i))) return;
+  
+  // Determine if this edge belongs to outer or inner shape
+  const isOuter = (i < outerCount && j < outerCount);
+  
+  l4CurrentEdges.push({i,j,isOuter});
+  
+  const now = performance.now();
+  if(l4LastActionTime > 0){
+    l4ActionIntervals.push((now - l4LastActionTime)/1000);
+  }
+  l4LastActionTime = now;
+  
+  renderLevel4Svg(vertices, outerCount);
+}
+
+function useHint4(){
+  const now = Date.now();
+  const hintInfo = document.getElementById("hintInfo4");
+  const shapeIndex = l4CurrentShapeIndices[0];
+  const shape = level4Shapes[shapeIndex];
+  const outerVertices = shape.outer;
+  const innerVertices = shape.inner;
+  const nOuter = outerVertices.length;
+  const nInner = innerVertices.length;
+
+  if(l4HintsUsed >= 3){
+    hintInfo.textContent = "Maximum hints used.";
+    return;
+  }
+  if(l4LastHintTime && now - l4LastHintTime < 15000){
+    const remain = Math.ceil((15000 - (now - l4LastHintTime))/1000);
+    hintInfo.textContent = `Next hint in ${remain}s`;
+    return;
+  }
+
+  // Build list of all true edges (outer + inner)
+  const trueEdges = [];
+  for(let k=0;k<nOuter;k++){
+    const a=k, b=(k+1)%nOuter;
+    const ii=Math.min(a,b), jj=Math.max(a,b);
+    trueEdges.push({i:ii,j:jj,isOuter:true});
+  }
+  for(let k=0;k<nInner;k++){
+    const a=nOuter+k, b=nOuter+((k+1)%nInner);
+    const ii=Math.min(a,b), jj=Math.max(a,b);
+    trueEdges.push({i:ii,j:jj,isOuter:false});
+  }
+
+  let chosen=null;
+  for(const e of trueEdges){
+    if(!l4CurrentEdges.some(x=>{
+      const xi=Math.min(x.i,x.j), xj=Math.max(x.i,x.j);
+      return xi===e.i && xj===e.j;
+    })){
+      chosen=e; break;
+    }
+  }
+
+  if(!chosen){
+    hintInfo.textContent = "All edges already revealed.";
+    return;
+  }
+
+  l4HintsUsed++;
+  l4LastHintTime = now;
+  const totalVertices = [...outerVertices, ...innerVertices];
+  addL4Edge(chosen.i, chosen.j, totalVertices, nOuter);
+  hintInfo.textContent = `Hints used: ${l4HintsUsed}/3`;
+}
+
+function submitLevel4(){
+  const shapeIndex = l4CurrentShapeIndices[0];
+  const shape = level4Shapes[shapeIndex];
+  const outerVertices = shape.outer;
+  const innerVertices = shape.inner;
+  const nOuter = outerVertices.length;
+  const nInner = innerVertices.length;
+
+  const end = performance.now();
+  const timeTaken = ((end - l4RoundStartTime)/1000).toFixed(2);
+
+  // Build true edges
+  const trueOuterEdges = [];
+  for(let k=0;k<nOuter;k++){
+    const a=k, b=(k+1)%nOuter;
+    const ii=Math.min(a,b), jj=Math.max(a,b);
+    trueOuterEdges.push(`${ii}-${jj}`);
+  }
+  const trueInnerEdges = [];
+  for(let k=0;k<nInner;k++){
+    const a=nOuter+k, b=nOuter+((k+1)%nInner);
+    const ii=Math.min(a,b), jj=Math.max(a,b);
+    trueInnerEdges.push(`${ii}-${jj}`);
+  }
+
+  const trueOuterSet = new Set(trueOuterEdges);
+  const trueInnerSet = new Set(trueInnerEdges);
+
+  const userOuterEdges = l4CurrentEdges.filter(e=>e.isOuter).map(e=>{
+    const ii=Math.min(e.i,e.j), jj=Math.max(e.i,e.j);
+    return `${ii}-${jj}`;
+  });
+  const userInnerEdges = l4CurrentEdges.filter(e=>!e.isOuter).map(e=>{
+    const ii=Math.min(e.i,e.j), jj=Math.max(e.i,e.j);
+    return `${ii}-${jj}`;
+  });
+
+  const userOuterSet = new Set(userOuterEdges);
+  const userInnerSet = new Set(userInnerEdges);
+
+  let outerMissing=0, outerWrong=0;
+  for(const t of trueOuterEdges) if(!userOuterSet.has(t)) outerMissing++;
+  for(const u of userOuterEdges) if(!trueOuterSet.has(u)) outerWrong++;
+
+  let innerMissing=0, innerWrong=0;
+  for(const t of trueInnerEdges) if(!userInnerSet.has(t)) innerMissing++;
+  for(const u of userInnerEdges) if(!trueInnerSet.has(u)) innerWrong++;
+
+  const totalMissing = outerMissing + innerMissing;
+  const totalWrong = outerWrong + innerWrong;
+
+  const totalVertices = [...outerVertices, ...innerVertices];
+  let intersect=false;
+  for(let i=0;i<l4CurrentEdges.length;i++){
+    for(let j=i+1;j<l4CurrentEdges.length;j++){
+      if(edgesIntersect(l4CurrentEdges[i],l4CurrentEdges[j],totalVertices)){
+        intersect = true; break;
+      }
+    }
+    if(intersect) break;
+  }
+
+  const correct = (totalMissing===0 && totalWrong===0 && !intersect);
+
+  const now = performance.now();
+  if(l4LastActionTime > 0){
+    l4ActionIntervals.push((now - l4LastActionTime)/1000);
+  }
+  
+  const avgInterval = l4ActionIntervals.length > 0
+    ? (l4ActionIntervals.reduce((a,b)=>a+b,0) / l4ActionIntervals.length).toFixed(2)
+    : 0;
+  const timeBeforeSubmit = l4ActionIntervals.length > 0
+    ? l4ActionIntervals[l4ActionIntervals.length - 1].toFixed(2)
+    : 0;
+
+  l4Results.push({
+    correct,
+    shapeName: shape.name,
+    time: timeTaken,
+    hints: l4HintsUsed,
+    outerMissing,
+    outerWrong,
+    innerMissing,
+    innerWrong,
+    totalMissing,
+    totalWrong,
+    intersect,
+    erased: l4ErasedEdges,
+    avgActionInterval: avgInterval,
+    timeBeforeSubmit: timeBeforeSubmit
+  });
+
+  if(l4RoundIndex === 1){  // 2 rounds: simple and complex
+    endLevel4();
+  } else {
+    l4RoundIndex++;
+    startLevel4Round();
+  }
+}
+
+function endLevel4(){
+  let html = "";
+  l4Results.forEach((r,i)=>{
+    html += `
+      <h3 style="text-align:center;">Round ${i+1} (${r.shapeName})</h3>
+      <table class="results-table">
+        <tr><td>Result</td><td>${r.correct ? "Correct" : "Wrong"}</td></tr>
+        <tr><td>Time Taken</td><td>${r.time} sec</td></tr>
+        <tr><td>Hints Used</td><td>${r.hints}</td></tr>
+        <tr><td>Outer Edges Missing</td><td>${r.outerMissing}</td></tr>
+        <tr><td>Outer Edges Wrong</td><td>${r.outerWrong}</td></tr>
+        <tr><td>Inner Edges Missing</td><td>${r.innerMissing}</td></tr>
+        <tr><td>Inner Edges Wrong</td><td>${r.innerWrong}</td></tr>
+        <tr><td>Total Missing</td><td>${r.totalMissing}</td></tr>
+        <tr><td>Total Wrong</td><td>${r.totalWrong}</td></tr>
+        <tr><td>Any Intersections</td><td>${r.intersect ? "Yes" : "No"}</td></tr>
+        <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
+        <tr><td>Avg Time Between Actions</td><td>${r.avgActionInterval} sec</td></tr>
+        <tr><td>Time Before Submit</td><td>${r.timeBeforeSubmit} sec</td></tr>
+      </table>
+    `;
+  });
+
+  document.getElementById("summary4").innerHTML = html;
+  showScreen("results4");
+}
+
+/* ============ LEVEL 5 FLOW ============ */
+function startLevel5(){
+  l5RoundIndex = 0;
+  l5Results = [];
+  showScreen("level5");
+  startLevel5Round();
+}
+
+function startLevel5Round(){
+  const pointSet = level5PointSets[l5RoundIndex];
+  const points = pointSet.points;
+
+  l5CurrentEdges = [];
+  l5DragStartIndex = null;
+  l5LastActionTime = 0;
+  l5ActionIntervals = [];
+  l5ErasedEdges = 0;
+
+  document.getElementById("level5Text").textContent = `Round ${l5RoundIndex + 1}: Create two separate triangles that do not touch.`;
+  document.getElementById("level5Info").textContent = "Draw your first triangle (black), then your second triangle (blue).";
+
+  l5RoundStartTime = performance.now();
+  renderLevel5Svg(points);
+}
+
+function renderLevel5Svg(points){
+  const container = document.getElementById("level5Container");
+
+  // Determine which triangle each edge belongs to
+  const triangle1Vertices = new Set();
+  const triangle2Vertices = new Set();
+  
+  l5CurrentEdges.forEach(e=>{
+    if(e.triangleNum === 1){
+      triangle1Vertices.add(e.i);
+      triangle1Vertices.add(e.j);
+    } else if(e.triangleNum === 2){
+      triangle2Vertices.add(e.i);
+      triangle2Vertices.add(e.j);
+    }
+  });
+
+  const linesHtml = l5CurrentEdges.map((e,idx)=>{
+    const a=points[e.i], b=points[e.j];
+    const color = e.triangleNum === 1 ? "black" : "blue";
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"
+                  stroke="${color}" stroke-width="2"
+                  data-index="${idx}" />`;
+  }).join("");
+
+  const pointsHtml = points.map((v,idx)=>{
+    let color = "#666";
+    if(triangle1Vertices.has(idx)) color = "black";
+    if(triangle2Vertices.has(idx)) color = "blue";
+    if(triangle1Vertices.has(idx) && triangle2Vertices.has(idx)) color = "red"; // shared vertex
+    
+    return `<circle cx="${v.x}" cy="${v.y}" r="3.5" fill="${color}"
+            data-vertex="${idx}"
+            style="cursor:pointer; pointer-events:auto;" />`;
+  }).join("");
+
+  container.innerHTML = `
+    <svg id="level5Svg" viewBox="0 0 100 100" width="500" height="500">
+      ${linesHtml}
+      ${pointsHtml}
+    </svg>
+  `;
+
+  const svg = document.getElementById("level5Svg");
+
+  svg.querySelectorAll("line").forEach(line=>{
+    line.addEventListener("click", ()=>{
+      const index = parseInt(line.getAttribute("data-index"),10);
+      if(!isNaN(index)){
+        l5CurrentEdges.splice(index,1);
+        l5ErasedEdges++;
+        
+        const now = performance.now();
+        if(l5LastActionTime > 0){
+          l5ActionIntervals.push((now - l5LastActionTime)/1000);
+        }
+        l5LastActionTime = now;
+        
+        renderLevel5Svg(points);
+      }
+    });
+  });
+
+  svg.querySelectorAll("circle").forEach(circle=>{
+    const idx = parseInt(circle.getAttribute("data-vertex"),10);
+
+    circle.addEventListener("mousedown", ()=>{
+      l5DragStartIndex = idx;
+    });
+
+    circle.addEventListener("mouseup", ()=>{
+      if(l5DragStartIndex !== null && l5DragStartIndex !== idx){
+        addL5Edge(l5DragStartIndex, idx, points);
+      }
+      l5DragStartIndex = null;
+    });
+  });
+}
+
+function addL5Edge(i,j,points){
+  // Don't add duplicate edges
+  if(l5CurrentEdges.some(e => (e.i===i && e.j===j) || (e.i===j && e.j===i))) return;
+  
+  // Determine which triangle this edge belongs to
+  // First, identify existing triangles
+  const triangle1Vertices = new Set();
+  const triangle2Vertices = new Set();
+  
+  l5CurrentEdges.forEach(e=>{
+    if(e.triangleNum === 1){
+      triangle1Vertices.add(e.i);
+      triangle1Vertices.add(e.j);
+    } else if(e.triangleNum === 2){
+      triangle2Vertices.add(e.i);
+      triangle2Vertices.add(e.j);
+    }
+  });
+
+  let triangleNum = 0;
+  
+  // If either vertex is already in triangle 1, assign to triangle 1
+  if(triangle1Vertices.has(i) || triangle1Vertices.has(j)){
+    triangleNum = 1;
+  }
+  // Else if either vertex is in triangle 2, assign to triangle 2
+  else if(triangle2Vertices.has(i) || triangle2Vertices.has(j)){
+    triangleNum = 2;
+  }
+  // If neither vertex is assigned yet
+  else {
+    // Assign to triangle 1 if it has fewer than 3 vertices, else triangle 2
+    if(triangle1Vertices.size < 3){
+      triangleNum = 1;
+    } else {
+      triangleNum = 2;
+    }
+  }
+  
+  l5CurrentEdges.push({i, j, triangleNum});
+  
+  const now = performance.now();
+  if(l5LastActionTime > 0){
+    l5ActionIntervals.push((now - l5LastActionTime)/1000);
+  }
+  l5LastActionTime = now;
+  
+  renderLevel5Svg(points);
+}
+
+function submitLevel5(){
+  const pointSet = level5PointSets[l5RoundIndex];
+  const points = pointSet.points;
+
+  const end = performance.now();
+  const timeTaken = ((end - l5RoundStartTime)/1000).toFixed(2);
+
+  // Extract triangles
+  const triangle1Edges = l5CurrentEdges.filter(e => e.triangleNum === 1);
+  const triangle2Edges = l5CurrentEdges.filter(e => e.triangleNum === 2);
+
+  const triangle1Vertices = new Set();
+  triangle1Edges.forEach(e => {
+    triangle1Vertices.add(e.i);
+    triangle1Vertices.add(e.j);
+  });
+
+  const triangle2Vertices = new Set();
+  triangle2Edges.forEach(e => {
+    triangle2Vertices.add(e.i);
+    triangle2Vertices.add(e.j);
+  });
+
+  // Validation checks
+  const hasTriangle1 = triangle1Edges.length === 3 && triangle1Vertices.size === 3;
+  const hasTriangle2 = triangle2Edges.length === 3 && triangle2Vertices.size === 3;
+  const hasTwoTriangles = hasTriangle1 && hasTriangle2;
+
+  // Check for shared vertices
+  const sharedVertices = [...triangle1Vertices].filter(v => triangle2Vertices.has(v));
+  const hasSharedVertices = sharedVertices.length > 0;
+
+  // Check for shared edges
+  const sharedEdges = triangle1Edges.filter(e1 => {
+    const i1 = Math.min(e1.i, e1.j), j1 = Math.max(e1.i, e1.j);
+    return triangle2Edges.some(e2 => {
+      const i2 = Math.min(e2.i, e2.j), j2 = Math.max(e2.i, e2.j);
+      return i1 === i2 && j1 === j2;
+    });
+  });
+  const hasSharedEdges = sharedEdges.length > 0;
+
+  // Check if edges of different triangles intersect
+  let hasIntersection = false;
+  for(const e1 of triangle1Edges){
+    for(const e2 of triangle2Edges){
+      if(edgesIntersect(e1, e2, points)){
+        hasIntersection = true;
+        break;
+      }
+    }
+    if(hasIntersection) break;
+  }
+
+  // Check if triangles are valid (closed shapes)
+  const t1Valid = hasTriangle1 && isValidTriangle(triangle1Edges, triangle1Vertices);
+  const t2Valid = hasTriangle2 && isValidTriangle(triangle2Edges, triangle2Vertices);
+
+  const trianglesSeparate = !hasSharedVertices && !hasSharedEdges && !hasIntersection;
+  const correct = hasTwoTriangles && t1Valid && t2Valid && trianglesSeparate;
+
+  const now = performance.now();
+  if(l5LastActionTime > 0){
+    l5ActionIntervals.push((now - l5LastActionTime)/1000);
+  }
+  
+  const avgInterval = l5ActionIntervals.length > 0
+    ? (l5ActionIntervals.reduce((a,b)=>a+b,0) / l5ActionIntervals.length).toFixed(2)
+    : 0;
+  const timeBeforeSubmit = l5ActionIntervals.length > 0
+    ? l5ActionIntervals[l5ActionIntervals.length - 1].toFixed(2)
+    : 0;
+
+  l5Results.push({
+    correct,
+    time: timeTaken,
+    hasTwoTriangles,
+    triangle1Valid: t1Valid,
+    triangle2Valid: t2Valid,
+    hasSharedVertices,
+    sharedVertexCount: sharedVertices.length,
+    hasSharedEdges,
+    sharedEdgeCount: sharedEdges.length,
+    hasIntersection,
+    trianglesSeparate,
+    erased: l5ErasedEdges,
+    avgActionInterval: avgInterval,
+    timeBeforeSubmit: timeBeforeSubmit
+  });
+
+  if(l5RoundIndex === level5PointSets.length - 1){
+    endLevel5();
+  } else {
+    l5RoundIndex++;
+    startLevel5Round();
+  }
+}
+
+function isValidTriangle(edges, vertices){
+  if(edges.length !== 3 || vertices.size !== 3) return false;
+  
+  // Check that each vertex has degree 2 (connected to exactly 2 edges)
+  const degree = new Map();
+  edges.forEach(e => {
+    degree.set(e.i, (degree.get(e.i) || 0) + 1);
+    degree.set(e.j, (degree.get(e.j) || 0) + 1);
+  });
+  
+  return [...degree.values()].every(d => d === 2);
+}
+
+function endLevel5(){
+  let html = "";
+  l5Results.forEach((r,i)=>{
+    html += `
+      <h3 style="text-align:center;">Round ${i+1}</h3>
+      <table class="results-table">
+        <tr><td>Result</td><td>${r.correct ? "Correct" : "Wrong"}</td></tr>
+        <tr><td>Time Taken</td><td>${r.time} sec</td></tr>
+        <tr><td>Has Two Triangles</td><td>${r.hasTwoTriangles ? "Yes" : "No"}</td></tr>
+        <tr><td>Triangle 1 Valid</td><td>${r.triangle1Valid ? "Yes" : "No"}</td></tr>
+        <tr><td>Triangle 2 Valid</td><td>${r.triangle2Valid ? "Yes" : "No"}</td></tr>
+        <tr><td>Triangles Separate</td><td>${r.trianglesSeparate ? "Yes" : "No"}</td></tr>
+        <tr><td>Shared Vertices</td><td>${r.sharedVertexCount}</td></tr>
+        <tr><td>Shared Edges</td><td>${r.sharedEdgeCount}</td></tr>
+        <tr><td>Edges Intersect</td><td>${r.hasIntersection ? "Yes" : "No"}</td></tr>
+        <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
+        <tr><td>Avg Time Between Actions</td><td>${r.avgActionInterval} sec</td></tr>
+        <tr><td>Time Before Submit</td><td>${r.timeBeforeSubmit} sec</td></tr>
+      </table>
+    `;
+  });
+
+  document.getElementById("summary5").innerHTML = html;
+  showScreen("results5");
 }
 </script>
 
