@@ -480,7 +480,7 @@
                     <li>Reconstruct <strong>both</strong> the outer and inner shapes by connecting the points.</li>
                     <li>Outer shape edges are drawn in <strong>black</strong>, inner shape edges in <strong>blue</strong>.</li>
                 </ul>
-
+            </div>
 
             <div style="text-align:center; margin-top:12px;">
                 <button onclick="startLevel4()">Start Level 4</button>
@@ -558,7 +558,8 @@
     <div style="text-align:center; margin-top:5%">
         <h2>Level 5 Results</h2>
         <div id="summary5" style="max-width:800px; margin:0 auto;"></div>
-        <button onclick="alert('Assessment complete!')">Finish</button>
+        <button onclick="downloadCSV()">Download All Results (CSV)</button>
+        <button onclick="alert('Assessment complete!')" style="margin-left:10px;">Finish</button>
     </div>
 </div>
 
@@ -611,6 +612,7 @@ let flipCorrectSvg, rotationCorrectSvg;
 let flipMistake=null, rotationMistake=null;
 let flipLastActionTime=0, rotationLastActionTime=0;
 let flipActionIntervals=[], rotationActionIntervals=[];
+let level1Results = {flip: null, rotation: null};
 
 /* ============ LEVEL 1 LOGIC ============ */
 function startLevel1(){
@@ -729,6 +731,20 @@ function endLevel1(){
   const rotationTimeBeforeSubmit = rotationActionIntervals.length > 0
     ? rotationActionIntervals[rotationActionIntervals.length - 1].toFixed(2)
     : "N/A";
+
+  // Store results
+  level1Results.flip = {
+    correct: flipCorrect,
+    time: flipTime,
+    avgActionInterval: flipAvgInterval,
+    timeBeforeSubmit: flipTimeBeforeSubmit
+  };
+  level1Results.rotation = {
+    correct: rotationCorrect,
+    time: rotationTime,
+    avgActionInterval: rotationAvgInterval,
+    timeBeforeSubmit: rotationTimeBeforeSubmit
+  };
 
   let html = `
     <h3 style="text-align:center;">Round 1 — Flip</h3>
@@ -2254,6 +2270,160 @@ function endLevel5(){
 
   document.getElementById("summary5").innerHTML = html;
   showScreen("results5");
+}
+
+/* ============ CSV EXPORT ============ */
+function downloadCSV(){
+  let csv = [];
+  
+  // Level 1 - Flip
+  if(level1Results.flip){
+    csv.push([
+      'Level 1',
+      'Flip',
+      level1Results.flip.correct ? 'Correct' : 'Wrong',
+      level1Results.flip.time,
+      level1Results.flip.avgActionInterval,
+      level1Results.flip.timeBeforeSubmit,
+      '', '', '', '', '', '', '', '', ''
+    ]);
+  }
+  
+  // Level 1 - Rotation
+  if(level1Results.rotation){
+    csv.push([
+      'Level 1',
+      'Rotation',
+      level1Results.rotation.correct ? 'Correct' : 'Wrong',
+      level1Results.rotation.time,
+      level1Results.rotation.avgActionInterval,
+      level1Results.rotation.timeBeforeSubmit,
+      '', '', '', '', '', '', '', '', ''
+    ]);
+  }
+  
+  // Level 2
+  l2Results.forEach((r, i) => {
+    csv.push([
+      'Level 2',
+      `Round ${i+1}`,
+      r.correct ? 'Correct' : 'Wrong',
+      r.time,
+      r.avgActionInterval,
+      r.timeBeforeSubmit,
+      r.hints,
+      r.missing,
+      r.wrong,
+      r.intersect ? 'Yes' : 'No',
+      r.closed ? 'Yes' : 'No',
+      r.erased,
+      r.followOrder ? 'Yes' : 'No',
+      '', ''
+    ]);
+  });
+  
+  // Level 3
+  l3Results.forEach((r, i) => {
+    csv.push([
+      'Level 3',
+      `Round ${i+1}`,
+      r.correct ? 'Correct' : 'Wrong',
+      r.time,
+      r.avgActionInterval,
+      r.timeBeforeSubmit,
+      r.hints,
+      r.missing,
+      r.wrong,
+      r.intersect ? 'Yes' : 'No',
+      r.closed ? 'Yes' : 'No',
+      r.erased,
+      '', '', ''
+    ]);
+  });
+  
+  // Level 4
+  l4Results.forEach((r, i) => {
+    csv.push([
+      'Level 4',
+      `${r.shapeName} (Round ${i+1})`,
+      r.correct ? 'Correct' : 'Wrong',
+      r.time,
+      r.avgActionInterval,
+      r.timeBeforeSubmit,
+      r.hints,
+      `Outer: ${r.outerMissing}, Inner: ${r.innerMissing}, Total: ${r.totalMissing}`,
+      `Outer: ${r.outerWrong}, Inner: ${r.innerWrong}, Total: ${r.totalWrong}`,
+      r.intersect ? 'Yes' : 'No',
+      '', // closed shape not tracked in L4
+      r.erased,
+      '', '', ''
+    ]);
+  });
+  
+  // Level 5
+  l5Results.forEach((r, i) => {
+    csv.push([
+      'Level 5',
+      `Round ${i+1}`,
+      r.correct ? 'Correct' : 'Wrong',
+      r.time,
+      r.avgActionInterval,
+      r.timeBeforeSubmit,
+      '', // no hints in L5
+      '', // edges missing tracked differently
+      '', // edges wrong tracked differently
+      r.hasIntersection ? 'Yes' : 'No',
+      '', // closed tracked per triangle
+      r.erased,
+      '',
+      `T1: ${r.triangle1Valid ? 'Yes' : 'No'}, T2: ${r.triangle2Valid ? 'Yes' : 'No'}`,
+      `Shared vertices: ${r.sharedVertexCount}, Shared edges: ${r.sharedEdgeCount}, Separate: ${r.trianglesSeparate ? 'Yes' : 'No'}`
+    ]);
+  });
+  
+  // Add header
+  csv.unshift([
+    'Level',
+    'Round/Type',
+    'Result',
+    'Time (sec)',
+    'Avg Action Interval (sec)',
+    'Time Before Submit (sec)',
+    'Hints Used',
+    'Edges Missing',
+    'Edges Wrong',
+    'Intersections',
+    'Closed Shape',
+    'Edges Erased',
+    'Followed Order',
+    'Triangle Validity',
+    'Additional Info'
+  ]);
+  
+  // Convert to CSV string
+  const csvContent = csv.map(row => 
+    row.map(cell => {
+      // Escape quotes and wrap in quotes if contains comma or quote
+      const str = String(cell);
+      if(str.includes(',') || str.includes('"') || str.includes('\n')){
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }).join(',')
+  ).join('\n');
+  
+  // Download
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+  
+  link.setAttribute('href', url);
+  link.setAttribute('download', `polymind_results_${timestamp}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 </script>
 
