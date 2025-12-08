@@ -594,14 +594,46 @@
 
 <!-- LEVEL 5 RESULTS -->
 <div id="results5" class="screen">
-    <div style="text-align:center; margin-top:5%">
-        <h2>Level 5 Results</h2>
-        <div id="summary5" style="max-width:800px; margin:0 auto;"></div>
-        <div style="margin-top:30px;">
-            <h3>Performance Over Time</h3>
-            <p style="font-size:14px; color:#555;">Average time between actions across all levels</p>
+    <div style="text-align:center; margin-top:5%; padding-bottom:50px;">
+        <h2>Complete Assessment Report</h2>
+        
+        <!-- Level 1 Summary -->
+        <div style="max-width:800px; margin:30px auto; text-align:left;">
+            <h2 style="text-align:center; border-bottom:2px solid #333; padding-bottom:10px;">Level 1 - Mental Rotation</h2>
+            <div id="allResults_level1"></div>
+        </div>
+        
+        <!-- Level 2 Summary -->
+        <div style="max-width:800px; margin:30px auto; text-align:left;">
+            <h2 style="text-align:center; border-bottom:2px solid #333; padding-bottom:10px;">Level 2 - Labeled Reconstruction</h2>
+            <div id="allResults_level2"></div>
+        </div>
+        
+        <!-- Level 3 Summary -->
+        <div style="max-width:800px; margin:30px auto; text-align:left;">
+            <h2 style="text-align:center; border-bottom:2px solid #333; padding-bottom:10px;">Level 3 - Unlabeled Reconstruction</h2>
+            <div id="allResults_level3"></div>
+        </div>
+        
+        <!-- Level 4 Summary -->
+        <div style="max-width:800px; margin:30px auto; text-align:left;">
+            <h2 style="text-align:center; border-bottom:2px solid #333; padding-bottom:10px;">Level 4 - Nested Shapes</h2>
+            <div id="allResults_level4"></div>
+        </div>
+        
+        <!-- Level 5 Summary -->
+        <div style="max-width:800px; margin:30px auto; text-align:left;">
+            <h2 style="text-align:center; border-bottom:2px solid #333; padding-bottom:10px;">Level 5 - Separate Triangles</h2>
+            <div id="allResults_level5"></div>
+        </div>
+        
+        <!-- Performance Graph -->
+        <div style="margin-top:40px;">
+            <h2 style="border-bottom:2px solid #333; padding-bottom:10px; max-width:800px; margin:0 auto;">Performance Over Time</h2>
+            <p style="font-size:14px; color:#555; margin-top:10px;">Average time between actions across all levels</p>
             <canvas id="performanceGraph" width="800" height="400" style="border:1px solid #ccc; margin:20px auto; display:block;"></canvas>
         </div>
+        
         <button onclick="downloadCSV()">Download All Results (CSV)</button>
         <button onclick="alert('Assessment complete!')" style="margin-left:10px;">Finish</button>
     </div>
@@ -2339,18 +2371,119 @@ function endLevel5(){
     `;
   });
 
-  document.getElementById("summary5").innerHTML = html;
   if(assessmentMode === 'patient'){
-    // Render graph before downloading
-    renderPerformanceGraph();
-    // Auto-download CSV and show completion message
-    downloadCSV();
-    alert('Assessment complete! Results have been downloaded.');
-    showScreen('modeSelection');
-  } else {
-    renderPerformanceGraph();
+    // For patient mode, just show Level 5 results
+    document.getElementById("allResults_level5").innerHTML = html;
     showScreen("results5");
+    // Render graph after screen is visible
+    setTimeout(() => {
+      renderPerformanceGraph();
+      // Auto-download CSV after showing graph
+      setTimeout(() => {
+        downloadCSV();
+        alert('Assessment complete! Results have been downloaded.');
+        showScreen('modeSelection');
+      }, 500);
+    }, 100);
+  } else {
+    // For physician mode, populate all level results
+    populateAllResults(html);
+    showScreen("results5");
+    // Render graph after screen is visible
+    setTimeout(() => renderPerformanceGraph(), 100);
   }
+}
+
+/* ============ POPULATE ALL RESULTS FOR PHYSICIAN MODE ============ */
+function populateAllResults(level5Html){
+  // Level 1
+  let l1Html = `
+    <h3 style="text-align:center;">Round 1 — Flip</h3>
+    <table class="results-table">
+      <tr><td>Result</td><td>${level1Results.flip ? (level1Results.flip.correct ? "Correct" : "Wrong") : "N/A"}</td></tr>
+      <tr><td>Time Taken</td><td>${level1Results.flip ? level1Results.flip.time : "N/A"} sec</td></tr>
+      <tr><td>Avg Time Between Actions</td><td>${level1Results.flip ? level1Results.flip.avgActionInterval : "N/A"} sec</td></tr>
+      <tr><td>Time Before Submit</td><td>${level1Results.flip ? level1Results.flip.timeBeforeSubmit : "N/A"} sec</td></tr>
+    </table>
+    <h3 style="text-align:center;">Round 2 — Rotation</h3>
+    <table class="results-table">
+      <tr><td>Result</td><td>${level1Results.rotation ? (level1Results.rotation.correct ? "Correct" : "Wrong") : "N/A"}</td></tr>
+      <tr><td>Time Taken</td><td>${level1Results.rotation ? level1Results.rotation.time : "N/A"} sec</td></tr>
+      <tr><td>Avg Time Between Actions</td><td>${level1Results.rotation ? level1Results.rotation.avgActionInterval : "N/A"} sec</td></tr>
+      <tr><td>Time Before Submit</td><td>${level1Results.rotation ? level1Results.rotation.timeBeforeSubmit : "N/A"} sec</td></tr>
+    </table>
+  `;
+  document.getElementById("allResults_level1").innerHTML = l1Html;
+  
+  // Level 2
+  let l2Html = "";
+  l2Results.forEach((r,i)=>{
+    l2Html += `
+      <h3 style="text-align:center;">Round ${i+1}</h3>
+      <table class="results-table">
+        <tr><td>Result</td><td>${r.correct ? "Correct" : "Wrong"}</td></tr>
+        <tr><td>Time Taken</td><td>${r.time} sec</td></tr>
+        <tr><td>Hints Used</td><td>${r.hints}</td></tr>
+        <tr><td>Edges Missing</td><td>${r.missing}</td></tr>
+        <tr><td>Wrong Edges</td><td>${r.wrong}</td></tr>
+        <tr><td>Edge Intersect</td><td>${r.intersect ? "Yes" : "No"}</td></tr>
+        <tr><td>Closed Shape</td><td>${r.closed ? "Yes" : "No"}</td></tr>
+        <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
+        <tr><td>Followed Order</td><td>${r.followOrder ? "Yes" : "No"}</td></tr>
+        <tr><td>Avg Time Between Actions</td><td>${r.avgActionInterval} sec</td></tr>
+        <tr><td>Time Before Submit</td><td>${r.timeBeforeSubmit} sec</td></tr>
+      </table>
+    `;
+  });
+  document.getElementById("allResults_level2").innerHTML = l2Html;
+  
+  // Level 3
+  let l3Html = "";
+  l3Results.forEach((r,i)=>{
+    l3Html += `
+      <h3 style="text-align:center;">Round ${i+1}</h3>
+      <table class="results-table">
+        <tr><td>Result</td><td>${r.correct ? "Correct" : "Wrong"}</td></tr>
+        <tr><td>Time Taken</td><td>${r.time} sec</td></tr>
+        <tr><td>Hints Used</td><td>${r.hints}</td></tr>
+        <tr><td>Edges Missing</td><td>${r.missing}</td></tr>
+        <tr><td>Wrong Edges</td><td>${r.wrong}</td></tr>
+        <tr><td>Edge Intersect</td><td>${r.intersect ? "Yes" : "No"}</td></tr>
+        <tr><td>Closed Shape</td><td>${r.closed ? "Yes" : "No"}</td></tr>
+        <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
+        <tr><td>Avg Time Between Actions</td><td>${r.avgActionInterval} sec</td></tr>
+        <tr><td>Time Before Submit</td><td>${r.timeBeforeSubmit} sec</td></tr>
+      </table>
+    `;
+  });
+  document.getElementById("allResults_level3").innerHTML = l3Html;
+  
+  // Level 4
+  let l4Html = "";
+  l4Results.forEach((r,i)=>{
+    l4Html += `
+      <h3 style="text-align:center;">Round ${i+1} (${r.shapeName})</h3>
+      <table class="results-table">
+        <tr><td>Result</td><td>${r.correct ? "Correct" : "Wrong"}</td></tr>
+        <tr><td>Time Taken</td><td>${r.time} sec</td></tr>
+        <tr><td>Hints Used</td><td>${r.hints}</td></tr>
+        <tr><td>Outer Edges Missing</td><td>${r.outerMissing}</td></tr>
+        <tr><td>Outer Wrong Edges</td><td>${r.outerWrong}</td></tr>
+        <tr><td>Inner Edges Missing</td><td>${r.innerMissing}</td></tr>
+        <tr><td>Inner Wrong Edges</td><td>${r.innerWrong}</td></tr>
+        <tr><td>Total Missing</td><td>${r.totalMissing}</td></tr>
+        <tr><td>Total Wrong</td><td>${r.totalWrong}</td></tr>
+        <tr><td>Edge Intersect</td><td>${r.intersect ? "Yes" : "No"}</td></tr>
+        <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
+        <tr><td>Avg Time Between Actions</td><td>${r.avgActionInterval} sec</td></tr>
+        <tr><td>Time Before Submit</td><td>${r.timeBeforeSubmit} sec</td></tr>
+      </table>
+    `;
+  });
+  document.getElementById("allResults_level4").innerHTML = l4Html;
+  
+  // Level 5
+  document.getElementById("allResults_level5").innerHTML = level5Html;
 }
 
 /* ============ PERFORMANCE GRAPH ============ */
