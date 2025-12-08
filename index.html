@@ -111,29 +111,232 @@
         font-weight: 700;
         width: 45%;
     }
+
+    /* Instructions layout */
+    .centered-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+
+
+.logo-slot {
+    width: 200px;      /* controls displayed logo size */
+    height: 100px;
+    margin-bottom: 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-slot img {
+    max-width: 150%;   /* KEEP logo inside the slot */
+    max-height: 150%;
+    object-fit: contain; 
+    display: block;
+}
+
+
+
+    .instructions-container {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: left;
+    }
+
+    .instructions-container h2 {
+        text-align: center;
+        margin-bottom: 16px;
+    }
+
+    .instructions-section {
+        margin-bottom: 18px;
+    }
+
+    .instructions-section h3 {
+        margin: 8px 0;
+        font-size: 18px;
+    }
+
+    .instructions-section ul {
+        margin: 4px 0 4px 20px;
+        padding: 0;
+    }
+
+    .instructions-section li {
+        margin-bottom: 4px;
+        line-height: 1.4;
+    }
 </style>
 </head>
 
 <body>
 
-<!-- INTRO -->
+<!-- INTRO (opening page, centered, with logo space) -->
 <div id="intro" class="screen active">
-    <div style="text-align:center; margin-top:10%">
-        <h1 style="font-size:60px;">PolyMind</h1>
-        <h3>Spatial Cognitive Assessment</h3>
-        <button onclick="showScreen('instructions')">Begin</button>
+    <div class="centered-container">
+<div class="logo-slot">
+    <img src="polymind.png" alt="Logo">
+</div>
+        <h1 style="font-size:60px; margin:0;">PolyMind</h1>
+        <h3 style="margin-top:8px;">Spatial Cognitive Assessment</h3>
+        <p style="margin-top:18px; max-width:600px;">
+            This assessment measures how you perceive, remember, and reconstruct shapes.
+        </p>
+        <button onclick="showScreen('instructions')">View Instructions</button>
     </div>
 </div>
 
-<!-- LEVEL 1 INTRO -->
+<!-- GLOBAL INSTRUCTIONS — SCREEN 1 -->
 <div id="instructions" class="screen">
-    <div style="text-align:center; margin-top:10%">
-        <h2>Level 1 Instructions</h2>
-        <p>
-            Match the polygon on the left to the identical polygon on the right.<br>
-            It may be flipped or rotated. Select the correct shape and submit.
-        </p>
-        <button onclick="startLevel1()">Start Level 1</button>
+    <div class="centered-container">
+        <div class="instructions-container">
+            
+            <h2>Welcome to PolyMind</h2>
+            <p>This assessment measures your spatial reasoning and geometric reconstruction skills through a series of interactive levels.</p>
+
+            <h3>What to Expect</h3>
+            <ul>
+                <li>The test progresses through multiple levels of increasing complexity.</li>
+                <li>Each level involves recognizing, reconstructing, or generating shapes.</li>
+                <li>You will receive feedback after each level before moving forward.</li>
+            </ul>
+
+            <div style="text-align:center; margin-top:18px;">
+                <button onclick="showScreen('instructions2')">Next</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- GLOBAL INSTRUCTIONS — SCREEN 2 -->
+<div id="instructions2" class="screen">
+    <div class="centered-container">
+        <div class="instructions-container">
+
+            <h2>Drawing Shapes</h2>
+
+            <h3>Drawing Edges</h3>
+            <ul>
+                <li>Shapes are built by connecting the points shown on the screen.</li>
+                <li><strong>To draw an edge:</strong> click and hold on one point, drag to another point, and release.</li>
+                <li>Each connected pair becomes an edge of your reconstructed shape.</li>
+            </ul>
+
+            <h3>Erasing Edges</h3>
+            <ul>
+                <li>Click directly on an existing line segment to remove it.</li>
+                <li>This allows you to refine or correct your drawing at any time.</li>
+            </ul>
+
+            <div style="text-align:center; margin-top:18px;">
+                <button onclick="showScreen('instructions')">Back</button>
+                <button onclick="showScreen('instructions3')">Next</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- GLOBAL INSTRUCTIONS — SCREEN 3 -->
+<div id="instructions3" class="screen">
+    <div class="centered-container">
+        <div class="instructions-container">
+
+            <h2>Using Hints</h2>
+
+            <h3>Hint Rules</h3>
+            <ul>
+                <li>You may use up to <strong>3 hints per round</strong>.</li>
+                <li>Each hint reveals <strong>one correct edge</strong> from the target shape.</li>
+                <li>There is a <strong>15-second cooldown</strong> before you may use the next hint.</li>
+                <li>Hints are optional and using them will be recorded in your score.</li>
+            </ul>
+
+            <div style="text-align:center; margin-top:18px;">
+                <button onclick="showScreen('instructions2')">Back</button>
+                <button onclick="showScreen('instructions4')">Next</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- GLOBAL INSTRUCTIONS — SCREEN 4 -->
+<div id="instructions4" class="screen">
+    <div class="centered-container">
+        <div class="instructions-container">
+
+            <h2>Submitting Answers & Navigation</h2>
+
+            <h3>Submitting Your Work</h3>
+            <ul>
+                <li>You can submit at any time — even if your drawing is incomplete or incorrect.</li>
+                <li>Press the <strong>Submit</strong> button to finish the round.</li>
+                <li>PolyMind records:
+                    <ul>
+                        <li>Correctness of your reconstruction</li>
+                        <li>Time taken</li>
+                        <li>Hints used</li>
+                        <li>Missing or incorrect edges</li>
+                        <li>Intersections or errors</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3>Moving Through the Test</h3>
+            <ul>
+                <li>After each level, a results screen will appear.</li>
+                <li>Use the button at the bottom of each results screen to proceed to the next level.</li>
+                <li>The test becomes progressively more challenging.</li>
+            </ul>
+
+            <div style="text-align:center; margin-top:18px;">
+                <button onclick="showScreen('instructions3')">Back</button>
+                <button onclick="showScreen('level1Intro')">Start Level 1</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+<!-- LEVEL 1 INTRO -->
+<div id="level1Intro" class="screen">
+    <div class="centered-container">
+        <div class="instructions-container">
+            <h2>Level 1 – Shape Matching</h2>
+            <div class="instructions-section">
+                <h3>What you will see</h3>
+                <ul>
+                    <li>One shape on the left (the <strong>target shape</strong>).</li>
+                    <li>Four shapes on the right (answer options).</li>
+                </ul>
+            </div>
+            <div class="instructions-section">
+                <h3>Your task</h3>
+                <ul>
+                    <li>Choose the option on the right that is the same shape as the target.</li>
+                    <li>The correct option may be <strong>flipped</strong> or <strong>rotated</strong>, but the shape itself is identical.</li>
+                </ul>
+            </div>
+            <div class="instructions-section">
+                <h3>How to respond</h3>
+                <ul>
+                    <li>Click on one of the shapes on the right to select it (it will be highlighted).</li>
+                    <li>Click <strong>Submit</strong> to record your answer.</li>
+                </ul>
+            </div>
+            <div style="text-align:center; margin-top:12px;">
+                <button onclick="startLevel1()">Start Level 1</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -160,16 +363,29 @@
 
 <!-- LEVEL 2 INTRO -->
 <div id="level2Intro" class="screen">
-    <div style="text-align:center; margin-top:10%">
-        <h2>Level 2 Instructions</h2>
-        <p>
-            You will briefly see a polygon (up to 7 vertices) for 5 seconds.<br>
-            Then it will disappear and you will see only labeled points (1, 2, 3, ...).<br><br>
-            Draw edges by pressing on a vertex and releasing on another.<br>
-            Click an existing edge to erase it.<br><br>
-            You may use up to 3 hints (15 seconds between hints).
-        </p>
-        <button onclick="startLevel2()">Start Level 2</button>
+    <div class="centered-container">
+        <div class="instructions-container">
+            <h2>Level 2 – Labeled Polygon Reconstruction</h2>
+            <div class="instructions-section">
+                <h3>What you will see</h3>
+                <ul>
+                    <li>A shape is shown for <strong>5 seconds</strong>.</li>
+                    <li>Then the shape disappears, and only the <strong>labeled points</strong> (1, 2, 3, …) remain.</li>
+                </ul>
+            </div>
+            <div class="instructions-section">
+                <h3>Your task</h3>
+                <ul>
+                    <li>Reconstruct the shape by drawing edges between the labeled points.</li>
+                    <li>Click the submit button once you are done.</li>
+                </ul>
+            </div>
+
+            </div>
+            <div style="text-align:center; margin-top:12px;">
+                <button onclick="startLevel2()">Start Level 2</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -198,16 +414,28 @@
 
 <!-- LEVEL 3 INTRO -->
 <div id="level3Intro" class="screen">
-    <div style="text-align:center; margin-top:10%">
-        <h2>Level 3 Instructions</h2>
-        <p>
-            Same as Level 2, but without any labels on the points.<br><br>
-            You will see a more complex polygon (8–9 vertices) for 5 seconds.<br>
-            Then you must reconstruct it by connecting the points.<br><br>
-            Draw edges by pressing on a vertex and releasing on another.<br>
-            Click an existing edge to erase it. Up to 3 hints (15s gap) per round.
-        </p>
-        <button onclick="startLevel3()">Start Level 3</button>
+    <div class="centered-container">
+        <div class="instructions-container">
+            <h2>Level 3 – Unlabeled Polygon Reconstruction</h2>
+            <div class="instructions-section">
+                <h3>What you will see</h3>
+                <ul>
+                    <li>A shape shown for <strong>5 seconds</strong>.</li>
+                    <li>Then the polygon disappears and only <strong>points (without any numbers)</strong> remain.</li>
+                </ul>
+            </div>
+            <div class="instructions-section">
+                <h3>Your task</h3>
+                <ul>
+                    <li>Reconstruct the shape by connecting the points.</li>
+                    <li>Click the submit button once you are done.</li>
+                </ul>
+            </div>
+
+            <div style="text-align:center; margin-top:12px;">
+                <button onclick="startLevel3()">Start Level 3</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -236,17 +464,28 @@
 
 <!-- LEVEL 4 INTRO -->
 <div id="level4Intro" class="screen">
-    <div style="text-align:center; margin-top:10%">
-        <h2>Level 4 Instructions</h2>
-        <p>
-            You will see a nested shape: a larger shape with a smaller version of the same shape inside.<br><br>
-            The image will be shown for 5 seconds, then you must reconstruct BOTH shapes.<br>
-            First round uses a simple shape (triangle, square, rectangle, or pentagon).<br>
-            Second round uses a complex shape (star, concave polygon, or tree shape).<br><br>
-            Draw edges by pressing on a vertex and releasing on another.<br>
-            Click an existing edge to erase it. Up to 3 hints (15s gap) per round.
-        </p>
-        <button onclick="startLevel4()">Start Level 4</button>
+    <div class="centered-container">
+        <div class="instructions-container">
+            <h2>Level 4 – Nested Shapes</h2>
+            <div class="instructions-section">
+                <h3>What you will see</h3>
+                <ul>
+                    <li>A larger shape with a smaller version of the same shape inside.</li>
+                    <li>The two shapes will be shown together for <strong>5 seconds</strong>.</li>
+                </ul>
+            </div>
+            <div class="instructions-section">
+                <h3>Your task</h3>
+                <ul>
+                    <li>Reconstruct <strong>both</strong> the outer and inner shapes by connecting the points.</li>
+                    <li>Outer shape edges are drawn in <strong>black</strong>, inner shape edges in <strong>blue</strong>.</li>
+                </ul>
+
+
+            <div style="text-align:center; margin-top:12px;">
+                <button onclick="startLevel4()">Start Level 4</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -275,17 +514,29 @@
 
 <!-- LEVEL 5 INTRO -->
 <div id="level5Intro" class="screen">
-    <div style="text-align:center; margin-top:10%">
-        <h2>Level 5 Instructions</h2>
-        <p>
-            You will see a field of points distributed across the canvas.<br><br>
-            Your task: Create TWO separate triangles that DO NOT touch each other.<br>
-            The triangles must not share vertices, edges, or overlap in any way.<br><br>
-            Draw edges by pressing on a vertex and releasing on another.<br>
-            Click an existing edge to erase it.<br>
-            Use different colors to see which triangle you're building (first = black, second = blue).
-        </p>
-        <button onclick="startLevel5()">Start Level 5</button>
+    <div class="centered-container">
+        <div class="instructions-container">
+            <h2>Level 5 – Separate Triangles</h2>
+            <div class="instructions-section">
+                <h3>What you will see</h3>
+                <ul>
+                    <li>Some points will be given.</li>
+                </ul>
+            </div>
+            <div class="instructions-section">
+                <h3>Your task</h3>
+                <ul>
+                    <li>Create <strong>two separate triangles</strong> that do not touch each other.</li>
+                    <li>The triangles must not share points, edges, or overlap.</li>
+                    <li>The first triangle is drawn in <strong>black</strong>, the second in <strong>blue</strong>.</li>
+                    <li>You do not have to use all the points.</li>
+                </ul>
+            </div>
+
+            <div style="text-align:center; margin-top:12px;">
+                <button onclick="startLevel5()">Start Level 5</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1468,7 +1719,6 @@ function renderLevel4Svg(vertices, outerCount){
 function addL4Edge(i,j,vertices, outerCount){
   if(l4CurrentEdges.some(e => (e.i===i && e.j===j) || (e.i===j && e.j===i))) return;
   
-  // Determine if this edge belongs to outer or inner shape
   const isOuter = (i < outerCount && j < outerCount);
   
   l4CurrentEdges.push({i,j,isOuter});
@@ -1502,7 +1752,6 @@ function useHint4(){
     return;
   }
 
-  // Build list of all true edges (outer + inner)
   const trueEdges = [];
   for(let k=0;k<nOuter;k++){
     const a=k, b=(k+1)%nOuter;
@@ -1548,7 +1797,6 @@ function submitLevel4(){
   const end = performance.now();
   const timeTaken = ((end - l4RoundStartTime)/1000).toFixed(2);
 
-  // Build true edges
   const trueOuterEdges = [];
   for(let k=0;k<nOuter;k++){
     const a=k, b=(k+1)%nOuter;
@@ -1630,7 +1878,7 @@ function submitLevel4(){
     timeBeforeSubmit: timeBeforeSubmit
   });
 
-  if(l4RoundIndex === 1){  // 2 rounds: simple and complex
+  if(l4RoundIndex === 1){
     endLevel4();
   } else {
     l4RoundIndex++;
@@ -1693,7 +1941,6 @@ function startLevel5Round(){
 function renderLevel5Svg(points){
   const container = document.getElementById("level5Container");
 
-  // Determine which triangle each edge belongs to
   const triangle1Vertices = new Set();
   const triangle2Vertices = new Set();
   
@@ -1719,7 +1966,7 @@ function renderLevel5Svg(points){
     let color = "#666";
     if(triangle1Vertices.has(idx)) color = "black";
     if(triangle2Vertices.has(idx)) color = "blue";
-    if(triangle1Vertices.has(idx) && triangle2Vertices.has(idx)) color = "red"; // shared vertex
+    if(triangle1Vertices.has(idx) && triangle2Vertices.has(idx)) color = "red";
     
     return `<circle cx="${v.x}" cy="${v.y}" r="3.5" fill="${color}"
             data-vertex="${idx}"
@@ -1770,11 +2017,8 @@ function renderLevel5Svg(points){
 }
 
 function addL5Edge(i,j,points){
-  // Don't add duplicate edges
   if(l5CurrentEdges.some(e => (e.i===i && e.j===j) || (e.i===j && e.j===i))) return;
   
-  // Determine which triangle this edge belongs to
-  // First, identify existing triangles
   const triangle1Vertices = new Set();
   const triangle2Vertices = new Set();
   
@@ -1790,17 +2034,13 @@ function addL5Edge(i,j,points){
 
   let triangleNum = 0;
   
-  // If either vertex is already in triangle 1, assign to triangle 1
   if(triangle1Vertices.has(i) || triangle1Vertices.has(j)){
     triangleNum = 1;
   }
-  // Else if either vertex is in triangle 2, assign to triangle 2
   else if(triangle2Vertices.has(i) || triangle2Vertices.has(j)){
     triangleNum = 2;
   }
-  // If neither vertex is assigned yet
   else {
-    // Assign to triangle 1 if it has fewer than 3 vertices, else triangle 2
     if(triangle1Vertices.size < 3){
       triangleNum = 1;
     } else {
@@ -1826,7 +2066,6 @@ function submitLevel5(){
   const end = performance.now();
   const timeTaken = ((end - l5RoundStartTime)/1000).toFixed(2);
 
-  // Extract triangles
   const triangle1Edges = l5CurrentEdges.filter(e => e.triangleNum === 1);
   const triangle2Edges = l5CurrentEdges.filter(e => e.triangleNum === 2);
 
@@ -1842,16 +2081,13 @@ function submitLevel5(){
     triangle2Vertices.add(e.j);
   });
 
-  // Validation checks
   const hasTriangle1 = triangle1Edges.length === 3 && triangle1Vertices.size === 3;
   const hasTriangle2 = triangle2Edges.length === 3 && triangle2Vertices.size === 3;
   const hasTwoTriangles = hasTriangle1 && hasTriangle2;
 
-  // Check for shared vertices
   const sharedVertices = [...triangle1Vertices].filter(v => triangle2Vertices.has(v));
   const hasSharedVertices = sharedVertices.length > 0;
 
-  // Check for shared edges
   const sharedEdges = triangle1Edges.filter(e1 => {
     const i1 = Math.min(e1.i, e1.j), j1 = Math.max(e1.i, e1.j);
     return triangle2Edges.some(e2 => {
@@ -1861,7 +2097,6 @@ function submitLevel5(){
   });
   const hasSharedEdges = sharedEdges.length > 0;
 
-  // Check if edges of different triangles intersect
   let hasIntersection = false;
   for(const e1 of triangle1Edges){
     for(const e2 of triangle2Edges){
@@ -1873,7 +2108,6 @@ function submitLevel5(){
     if(hasIntersection) break;
   }
 
-  // Check if triangles are valid (closed shapes)
   const t1Valid = hasTriangle1 && isValidTriangle(triangle1Edges, triangle1Vertices);
   const t2Valid = hasTriangle2 && isValidTriangle(triangle2Edges, triangle2Vertices);
 
@@ -1920,7 +2154,6 @@ function submitLevel5(){
 function isValidTriangle(edges, vertices){
   if(edges.length !== 3 || vertices.size !== 3) return false;
   
-  // Check that each vertex has degree 2 (connected to exactly 2 edges)
   const degree = new Map();
   edges.forEach(e => {
     degree.set(e.i, (degree.get(e.i) || 0) + 1);
