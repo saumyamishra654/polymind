@@ -177,8 +177,26 @@
 
 <body>
 
+<!-- MODE SELECTION -->
+<div id="modeSelection" class="screen active">
+    <div class="centered-container">
+        <h1 style="font-size:60px; margin:0;">PolyMind</h1>
+        <h3 style="margin-top:8px;">Select Mode</h3>
+        <div style="margin-top:30px;">
+            <button onclick="setMode('dev')" style="margin:10px;">Developer Mode</button>
+            <button onclick="setMode('physician')" style="margin:10px;">Physician Mode</button>
+            <button onclick="setMode('patient')" style="margin:10px;">Patient Mode</button>
+        </div>
+        <div style="margin-top:30px; max-width:600px; font-size:14px; text-align:left;">
+            <p><strong>Developer Mode:</strong> Jump to any level for testing.</p>
+            <p><strong>Physician Mode:</strong> Full assessment with result screens shown after each level.</p>
+            <p><strong>Patient Mode:</strong> Full assessment without result screens, download CSV at the end.</p>
+        </div>
+    </div>
+</div>
+
 <!-- INTRO (opening page, centered, with logo space) -->
-<div id="intro" class="screen active">
+<div id="intro" class="screen">
     <div class="centered-container">
 <div class="logo-slot">
     <img src="polymind.png" alt="Logo">
@@ -189,6 +207,23 @@
             This assessment measures how you perceive, remember, and reconstruct shapes.
         </p>
         <button onclick="showScreen('instructions')">View Instructions</button>
+    </div>
+</div>
+
+<!-- DEV MODE LEVEL SELECTION -->
+<div id="devLevelSelection" class="screen">
+    <div class="centered-container">
+        <h2>Developer Mode - Select Level</h2>
+        <div style="margin-top:30px;">
+            <button onclick="startLevel1()" style="margin:10px;">Level 1: Mental Rotation</button><br>
+            <button onclick="showScreen('level2Intro')" style="margin:10px;">Level 2: Labeled Reconstruction</button><br>
+            <button onclick="showScreen('level3Intro')" style="margin:10px;">Level 3: Unlabeled Reconstruction</button><br>
+            <button onclick="showScreen('level4Intro')" style="margin:10px;">Level 4: Nested Shapes</button><br>
+            <button onclick="showScreen('level5Intro')" style="margin:10px;">Level 5: Multi-Shape</button>
+        </div>
+        <div style="margin-top:30px;">
+            <button onclick="showScreen('modeSelection')">Back to Mode Selection</button>
+        </div>
     </div>
 </div>
 
@@ -564,6 +599,19 @@
 </div>
 
 <script>
+/* ============ GLOBAL STATE ============ */
+let assessmentMode = 'physician'; // 'dev', 'physician', or 'patient'
+
+/* ============ MODE SELECTION ============ */
+function setMode(mode){
+  assessmentMode = mode;
+  if(mode === 'dev'){
+    showScreen('devLevelSelection');
+  } else {
+    showScreen('intro');
+  }
+}
+
 /* ============ UTILITIES ============ */
 function shuffle(arr){
   return arr.map(v=>({v,sort:Math.random()}))
@@ -805,7 +853,11 @@ function endLevel1(){
   }
 
   document.getElementById("summary").innerHTML = html;
-  showScreen("results");
+  if(assessmentMode === 'patient'){
+    showScreen('level2Intro');
+  } else {
+    showScreen("results");
+  }
 }
 
 /* ============ LEVEL 2 DATA ============ */
@@ -1160,7 +1212,11 @@ function endLevel2(){
   });
 
   document.getElementById("summary2").innerHTML = html;
-  showScreen("results2");
+  if(assessmentMode === 'patient'){
+    showScreen('level3Intro');
+  } else {
+    showScreen("results2");
+  }
 }
 
 /* ============ LEVEL 5 DATA (multi-shape construction) ============ */
@@ -1600,7 +1656,11 @@ function endLevel3(){
   });
 
   document.getElementById("summary3").innerHTML = html;
-  showScreen("results3");
+  if(assessmentMode === 'patient'){
+    showScreen('level4Intro');
+  } else {
+    showScreen("results3");
+  }
 }
 
 /* ============ LEVEL 4 FLOW ============ */
@@ -1992,11 +2052,13 @@ function endLevel4(){
         `;
     });
 
-    document.getElementById("summary4").innerHTML = html;
+  document.getElementById("summary4").innerHTML = html;
+  if(assessmentMode === 'patient'){
+    showScreen('level5Intro');
+  } else {
     showScreen("results4");
-}
-
-/* ============ LEVEL 5 FLOW ============ */
+  }
+}/* ============ LEVEL 5 FLOW ============ */
 function startLevel5(){
   l5RoundIndex = 0;
   l5Results = [];
@@ -2269,7 +2331,14 @@ function endLevel5(){
   });
 
   document.getElementById("summary5").innerHTML = html;
-  showScreen("results5");
+  if(assessmentMode === 'patient'){
+    // Auto-download CSV and show completion message
+    downloadCSV();
+    alert('Assessment complete! Results have been downloaded.');
+    showScreen('modeSelection');
+  } else {
+    showScreen("results5");
+  }
 }
 
 /* ============ CSV EXPORT ============ */
