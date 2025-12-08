@@ -597,6 +597,11 @@
     <div style="text-align:center; margin-top:5%">
         <h2>Level 5 Results</h2>
         <div id="summary5" style="max-width:800px; margin:0 auto;"></div>
+        <div style="margin-top:30px;">
+            <h3>Performance Over Time</h3>
+            <p style="font-size:14px; color:#555;">Average time between actions across all levels</p>
+            <canvas id="performanceGraph" width="800" height="400" style="border:1px solid #ccc; margin:20px auto; display:block;"></canvas>
+        </div>
         <button onclick="downloadCSV()">Download All Results (CSV)</button>
         <button onclick="alert('Assessment complete!')" style="margin-left:10px;">Finish</button>
     </div>
@@ -2336,13 +2341,159 @@ function endLevel5(){
 
   document.getElementById("summary5").innerHTML = html;
   if(assessmentMode === 'patient'){
+    // Render graph before downloading
+    renderPerformanceGraph();
     // Auto-download CSV and show completion message
     downloadCSV();
     alert('Assessment complete! Results have been downloaded.');
     showScreen('modeSelection');
   } else {
+    renderPerformanceGraph();
     showScreen("results5");
   }
+}
+
+/* ============ PERFORMANCE GRAPH ============ */
+function renderPerformanceGraph(){
+  const canvas = document.getElementById('performanceGraph');
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+  const padding = 60;
+  
+  // Clear canvas
+  ctx.clearRect(0, 0, width, height);
+  
+  // Collect all avg action intervals
+  const dataPoints = [];
+  let labels = [];
+  
+  // Level 1 - Flip
+  if(level1Results.flip){
+    dataPoints.push(parseFloat(level1Results.flip.avgActionInterval) || 0);
+    labels.push('L1-Flip');
+  }
+  
+  // Level 1 - Rotation
+  if(level1Results.rotation){
+    dataPoints.push(parseFloat(level1Results.rotation.avgActionInterval) || 0);
+    labels.push('L1-Rot');
+  }
+  
+  // Level 2
+  l2Results.forEach((r, i) => {
+    dataPoints.push(parseFloat(r.avgActionInterval) || 0);
+    labels.push(`L2-R${i+1}`);
+  });
+  
+  // Level 3
+  l3Results.forEach((r, i) => {
+    dataPoints.push(parseFloat(r.avgActionInterval) || 0);
+    labels.push(`L3-R${i+1}`);
+  });
+  
+  // Level 4
+  l4Results.forEach((r, i) => {
+    dataPoints.push(parseFloat(r.avgActionInterval) || 0);
+    labels.push(`L4-R${i+1}`);
+  });
+  
+  // Level 5
+  l5Results.forEach((r, i) => {
+    dataPoints.push(parseFloat(r.avgActionInterval) || 0);
+    labels.push(`L5-R${i+1}`);
+  });
+  
+  if(dataPoints.length === 0) return;
+  
+  // Find min and max for scaling
+  const maxVal = Math.max(...dataPoints);
+  const minVal = Math.min(...dataPoints);
+  const range = maxVal - minVal || 1;
+  
+  // Calculate graph dimensions
+  const graphWidth = width - 2 * padding;
+  const graphHeight = height - 2 * padding;
+  const stepX = graphWidth / (dataPoints.length - 1 || 1);
+  
+  // Draw axes
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, height - padding);
+  ctx.lineTo(width - padding, height - padding);
+  ctx.stroke();
+  
+  // Draw Y-axis labels
+  ctx.fillStyle = '#333';
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'right';
+  for(let i = 0; i <= 5; i++){
+    const val = minVal + (range * i / 5);
+    const y = height - padding - (graphHeight * i / 5);
+    ctx.fillText(val.toFixed(2) + 's', padding - 10, y + 4);
+    
+    // Draw grid line
+    ctx.strokeStyle = '#ddd';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(width - padding, y);
+    ctx.stroke();
+  }
+  
+  // Y-axis label
+  ctx.save();
+  ctx.translate(15, height / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.fillText('Avg Time Between Actions (seconds)', 0, 0);
+  ctx.restore();
+  
+  // X-axis label
+  ctx.textAlign = 'center';
+  ctx.fillText('Assessment Progress', width / 2, height - 10);
+  
+  // Draw data points and line
+  ctx.strokeStyle = '#2196F3';
+  ctx.fillStyle = '#2196F3';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  
+  dataPoints.forEach((val, i) => {
+    const x = padding + (i * stepX);
+    const normalizedVal = (val - minVal) / range;
+    const y = height - padding - (normalizedVal * graphHeight);
+    
+    if(i === 0){
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  ctx.stroke();
+  
+  // Draw points
+  dataPoints.forEach((val, i) => {
+    const x = padding + (i * stepX);
+    const normalizedVal = (val - minVal) / range;
+    const y = height - padding - (normalizedVal * graphHeight);
+    
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    // Draw X-axis labels (rotated)
+    ctx.save();
+    ctx.translate(x, height - padding + 10);
+    ctx.rotate(-Math.PI / 4);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#333';
+    ctx.font = '10px Arial';
+    ctx.fillText(labels[i], 0, 0);
+    ctx.restore();
+  });
 }
 
 /* ============ CSV EXPORT ============ */
