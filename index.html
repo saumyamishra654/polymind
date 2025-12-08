@@ -184,7 +184,7 @@
     <img src="polymind.png" alt="Logo">
 </div>
         <h1 style="font-size:60px; margin:0;">PolyMind</h1>
-        <h3 style="margin-top:8px;">Spatial Cognitive Assessment</h3>
+        <h3 style="margin-top:8px;">Geometry Based Cognitive Assessment</h3>
         <p style="margin-top:18px; max-width:600px;">
             This assessment measures how you perceive, remember, and reconstruct shapes.
         </p>
@@ -480,7 +480,7 @@
                     <li>Reconstruct <strong>both</strong> the outer and inner shapes by connecting the points.</li>
                     <li>Outer shape edges are drawn in <strong>black</strong>, inner shape edges in <strong>blue</strong>.</li>
                 </ul>
-            </div>
+
 
             <div style="text-align:center; margin-top:12px;">
                 <button onclick="startLevel4()">Start Level 4</button>
@@ -1588,329 +1588,396 @@ function endLevel3(){
 }
 
 /* ============ LEVEL 4 FLOW ============ */
+
 function startLevel4(){
-  l4RoundIndex = 0;
-  l4Results = [];
-  showScreen("level4");
-  startLevel4Round();
+    l4RoundIndex = 0;
+    l4Results = [];
+    showScreen("level4");
+    startLevel4Round();
 }
 
 function startLevel4Round(){
-  // Round 1: simple shape (0-3), Round 2: complex shape (4-6)
-  const simpleShapes = [0, 1, 2, 3];  // square, triangle, pentagon, rectangle
-  const complexShapes = [4, 5, 6];     // star, concave, tree
-  
-  const shapeIndex = l4RoundIndex === 0
-    ? simpleShapes[Math.floor(Math.random() * simpleShapes.length)]
-    : complexShapes[Math.floor(Math.random() * complexShapes.length)];
-  
-  const shape = level4Shapes[shapeIndex];
-  const outerVertices = shape.outer;
-  const innerVertices = shape.inner;
-  const totalVertices = [...outerVertices, ...innerVertices];
 
-  l4CurrentEdges = [];
-  l4HintsUsed = 0;
-  l4LastHintTime = 0;
-  l4ErasedEdges = 0;
-  l4DragStartIndex = null;
-  l4LastActionTime = 0;
-  l4ActionIntervals = [];
-  l4CurrentShapeIndices = [shapeIndex];
+    // Round 1 = simple shape, Round 2 = complex shape
+    const simpleShapes = [0, 1, 2, 3];       // e.g., square, triangle, pentagon, rectangle  
+    const complexShapes = [4, 5, 6];         // e.g., star, concave, nested tree
 
-  const hintBtn = document.getElementById("hintBtn4");
-  const submitBtn = document.getElementById("submitL4Btn");
-  const hintInfo = document.getElementById("hintInfo4");
+    const shapeIndex =
+        l4RoundIndex === 0
+        ? simpleShapes[Math.floor(Math.random() * simpleShapes.length)]
+        : complexShapes[Math.floor(Math.random() * complexShapes.length)];
 
-  hintBtn.disabled = true;
-  submitBtn.disabled = true;
-  hintInfo.textContent = "Memorize the nested shapes (5 seconds).";
-  document.getElementById("level4Text").textContent = `Memorize the nested shapes (${l4RoundIndex === 0 ? 'Simple' : 'Complex'}).`;
+    const shape = level4Shapes[shapeIndex];
 
-  // Show both shapes
-  const outerPoints = outerVertices.map(v=>`${v.x},${v.y}`).join(" ");
-  const innerPoints = innerVertices.map(v=>`${v.x},${v.y}`).join(" ");
-  
-  document.getElementById("level4Container").innerHTML = `
-    <svg id="level4Svg" viewBox="0 0 100 100" width="500" height="500">
-      <polygon points="${outerPoints}" fill="none" stroke="black" stroke-width="2"/>
-      <polygon points="${innerPoints}" fill="none" stroke="blue" stroke-width="2"/>
-    </svg>
-  `;
+    const outerVertices = shape.outer;
+    const innerVertices = shape.inner;
+    const totalVertices = [...outerVertices, ...innerVertices];
 
-  if(l4ViewingTimeoutId) clearTimeout(l4ViewingTimeoutId);
-  l4ViewingTimeoutId = setTimeout(()=> {
-    startL4Reconstruction(totalVertices, outerVertices.length);
-  }, 5000);
+    // Reset state
+    l4CurrentEdges = [];
+    l4HintsUsed = 0;
+    l4LastHintTime = 0;
+    l4ErasedEdges = 0;
+    l4DragStartIndex = null;
+    l4LastActionTime = 0;
+    l4ActionIntervals = [];
+    l4CurrentShapeIndices = [shapeIndex];
+
+    const hintBtn = document.getElementById("hintBtn4");
+    const submitBtn = document.getElementById("submitL4Btn");
+    const hintInfo = document.getElementById("hintInfo4");
+
+    hintBtn.disabled = true;
+    submitBtn.disabled = true;
+    hintInfo.textContent = "Memorize the nested shapes (5 seconds).";
+
+    document.getElementById("level4Text").textContent =
+        `Memorize the nested shapes (${l4RoundIndex === 0 ? "Simple" : "Complex"}).`;
+
+    // Build SVG polygons
+    const outerPoints = outerVertices.map(v => `${v.x},${v.y}`).join(" ");
+    const innerPoints = innerVertices.map(v => `${v.x},${v.y}`).join(" ");
+
+    document.getElementById("level4Container").innerHTML = `
+        <svg id="level4Svg" viewBox="0 0 100 100" width="500" height="500">
+            <polygon points="${outerPoints}" fill="none" stroke="black" stroke-width="2"/>
+            <polygon points="${innerPoints}" fill="none" stroke="blue"  stroke-width="2"/>
+        </svg>
+    `;
+
+    if(l4ViewingTimeoutId) clearTimeout(l4ViewingTimeoutId);
+
+    l4ViewingTimeoutId = setTimeout(() => {
+        startL4Reconstruction(totalVertices, outerVertices.length);
+    }, 5000);
 }
 
 function startL4Reconstruction(vertices, outerCount){
-  document.getElementById("level4Text").textContent = "Reconstruct both the outer (black) and inner (blue) shapes.";
-  document.getElementById("hintBtn4").disabled = false;
-  document.getElementById("submitL4Btn").disabled = false;
-  document.getElementById("hintInfo4").textContent = "You can use up to 3 hints (15s gap). Black dots = outer shape, Blue dots = inner shape.";
 
-  l4RoundStartTime = performance.now();
-  renderLevel4Svg(vertices, outerCount);
+    document.getElementById("level4Text").textContent =
+        "Reconstruct both the outer (black) and inner (blue) shapes.";
+
+    document.getElementById("hintBtn4").disabled = false;
+    document.getElementById("submitL4Btn").disabled = false;
+
+    document.getElementById("hintInfo4").textContent =
+        "You can use up to 3 hints (15s gap). Black dots = outer shape, Blue dots = inner shape.";
+
+    l4RoundStartTime = performance.now();
+
+    renderLevel4Svg(vertices, outerCount);
 }
 
 function renderLevel4Svg(vertices, outerCount){
-  const container = document.getElementById("level4Container");
 
-  const linesHtml = l4CurrentEdges.map((e,idx)=>{
-    const a=vertices[e.i], b=vertices[e.j];
-    const color = e.isOuter ? "black" : "blue";
-    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"
+    const container = document.getElementById("level4Container");
+
+    const linesHtml = l4CurrentEdges.map((e, idx) => {
+        const a = vertices[e.i];
+        const b = vertices[e.j];
+        const color = e.isOuter ? "black" : "blue";
+
+        return `
+            <line x1="${a.x}" y1="${a.y}"
+                  x2="${b.x}" y2="${b.y}"
                   stroke="${color}" stroke-width="2"
-                  data-index="${idx}" />`;
-  }).join("");
+                  data-index="${idx}" />
+        `;
+    }).join("");
 
-  const pointsHtml = vertices.map((v,idx)=>{
-    const isOuter = idx < outerCount;
-    const color = isOuter ? "black" : "blue";
-    return `<circle cx="${v.x}" cy="${v.y}" r="3.5" fill="${color}"
-            data-vertex="${idx}"
-            style="cursor:pointer; pointer-events:auto;" />`;
-  }).join("");
+    const pointsHtml = vertices.map((v, idx) => {
+        const isOuter = idx < outerCount;
+        const color = isOuter ? "black" : "blue";
 
-  container.innerHTML = `
-    <svg id="level4Svg" viewBox="0 0 100 100" width="500" height="500">
-      ${linesHtml}
-      ${pointsHtml}
-    </svg>
-  `;
+        return `
+            <circle cx="${v.x}" cy="${v.y}" r="3.5"
+                    fill="${color}" data-vertex="${idx}"
+                    style="cursor:pointer; pointer-events:auto;" />
+        `;
+    }).join("");
 
-  const svg = document.getElementById("level4Svg");
+    container.innerHTML = `
+        <svg id="level4Svg" viewBox="0 0 100 100" width="500" height="500">
+            ${linesHtml}
+            ${pointsHtml}
+        </svg>
+    `;
 
-  svg.querySelectorAll("line").forEach(line=>{
-    line.addEventListener("click", ()=>{
-      const index = parseInt(line.getAttribute("data-index"),10);
-      if(!isNaN(index)){
-        l4CurrentEdges.splice(index,1);
-        l4ErasedEdges++;
-        
-        const now = performance.now();
-        if(l4LastActionTime > 0){
-          l4ActionIntervals.push((now - l4LastActionTime)/1000);
-        }
-        l4LastActionTime = now;
-        
-        renderLevel4Svg(vertices, outerCount);
-      }
-    });
-  });
+    const svg = document.getElementById("level4Svg");
 
-  svg.querySelectorAll("circle").forEach(circle=>{
-    const idx = parseInt(circle.getAttribute("data-vertex"),10);
+    // Erase edges
+    svg.querySelectorAll("line").forEach(line => {
+        line.addEventListener("click", () => {
+            const index = parseInt(line.getAttribute("data-index"), 10);
+            if(!isNaN(index)){
+                l4CurrentEdges.splice(index, 1);
+                l4ErasedEdges++;
 
-    circle.addEventListener("mousedown", ()=>{
-      l4DragStartIndex = idx;
+                const now = performance.now();
+                if(l4LastActionTime > 0){
+                    l4ActionIntervals.push((now - l4LastActionTime)/1000);
+                }
+                l4LastActionTime = now;
+
+                renderLevel4Svg(vertices, outerCount);
+            }
+        });
     });
 
-    circle.addEventListener("mouseup", ()=>{
-      if(l4DragStartIndex !== null && l4DragStartIndex !== idx){
-        addL4Edge(l4DragStartIndex, idx, vertices, outerCount);
-      }
-      l4DragStartIndex = null;
+    // Draw edges
+    svg.querySelectorAll("circle").forEach(circle => {
+        const idx = parseInt(circle.getAttribute("data-vertex"), 10);
+
+        circle.addEventListener("mousedown", () => {
+            l4DragStartIndex = idx;
+        });
+
+        circle.addEventListener("mouseup", () => {
+            if(l4DragStartIndex !== null && l4DragStartIndex !== idx){
+                addL4Edge(l4DragStartIndex, idx, vertices, outerCount);
+            }
+            l4DragStartIndex = null;
+        });
     });
-  });
 }
 
-function addL4Edge(i,j,vertices, outerCount){
-  if(l4CurrentEdges.some(e => (e.i===i && e.j===j) || (e.i===j && e.j===i))) return;
-  
-  const isOuter = (i < outerCount && j < outerCount);
-  
-  l4CurrentEdges.push({i,j,isOuter});
-  
-  const now = performance.now();
-  if(l4LastActionTime > 0){
-    l4ActionIntervals.push((now - l4LastActionTime)/1000);
-  }
-  l4LastActionTime = now;
-  
-  renderLevel4Svg(vertices, outerCount);
+function addL4Edge(i, j, vertices, outerCount){
+
+    // Prevent duplicate edges
+    if(l4CurrentEdges.some(e =>
+        (e.i === i && e.j === j) ||
+        (e.i === j && e.j === i)
+    )) return;
+
+    // Decide whether this belongs to outer or inner polygon
+    const isOuter = (i < outerCount && j < outerCount);
+
+    l4CurrentEdges.push({i, j, isOuter});
+
+    const now = performance.now();
+    if(l4LastActionTime > 0){
+        l4ActionIntervals.push((now - l4LastActionTime) / 1000);
+    }
+    l4LastActionTime = now;
+
+    renderLevel4Svg(vertices, outerCount);
 }
 
 function useHint4(){
-  const now = Date.now();
-  const hintInfo = document.getElementById("hintInfo4");
-  const shapeIndex = l4CurrentShapeIndices[0];
-  const shape = level4Shapes[shapeIndex];
-  const outerVertices = shape.outer;
-  const innerVertices = shape.inner;
-  const nOuter = outerVertices.length;
-  const nInner = innerVertices.length;
 
-  if(l4HintsUsed >= 3){
-    hintInfo.textContent = "Maximum hints used.";
-    return;
-  }
-  if(l4LastHintTime && now - l4LastHintTime < 15000){
-    const remain = Math.ceil((15000 - (now - l4LastHintTime))/1000);
-    hintInfo.textContent = `Next hint in ${remain}s`;
-    return;
-  }
+    const now = Date.now();
+    const hintInfo = document.getElementById("hintInfo4");
 
-  const trueEdges = [];
-  for(let k=0;k<nOuter;k++){
-    const a=k, b=(k+1)%nOuter;
-    const ii=Math.min(a,b), jj=Math.max(a,b);
-    trueEdges.push({i:ii,j:jj,isOuter:true});
-  }
-  for(let k=0;k<nInner;k++){
-    const a=nOuter+k, b=nOuter+((k+1)%nInner);
-    const ii=Math.min(a,b), jj=Math.max(a,b);
-    trueEdges.push({i:ii,j:jj,isOuter:false});
-  }
+    const shapeIndex = l4CurrentShapeIndices[0];
+    const shape = level4Shapes[shapeIndex];
 
-  let chosen=null;
-  for(const e of trueEdges){
-    if(!l4CurrentEdges.some(x=>{
-      const xi=Math.min(x.i,x.j), xj=Math.max(x.i,x.j);
-      return xi===e.i && xj===e.j;
-    })){
-      chosen=e; break;
+    const outerVertices = shape.outer;
+    const innerVertices = shape.inner;
+
+    const nOuter = outerVertices.length;
+    const nInner = innerVertices.length;
+
+    if(l4HintsUsed >= 3){
+        hintInfo.textContent = "Maximum hints used.";
+        return;
     }
-  }
 
-  if(!chosen){
-    hintInfo.textContent = "All edges already revealed.";
-    return;
-  }
+    if(l4LastHintTime && now - l4LastHintTime < 15000){
+        const remain = Math.ceil((15000 - (now - l4LastHintTime)) / 1000);
+        hintInfo.textContent = `Next hint in ${remain}s`;
+        return;
+    }
 
-  l4HintsUsed++;
-  l4LastHintTime = now;
-  const totalVertices = [...outerVertices, ...innerVertices];
-  addL4Edge(chosen.i, chosen.j, totalVertices, nOuter);
-  hintInfo.textContent = `Hints used: ${l4HintsUsed}/3`;
+    // Build list of true edges (outer + inner)
+    const trueEdges = [];
+
+    for(let k = 0; k < nOuter; k++){
+        const a = k, b = (k+1) % nOuter;
+        const ii = Math.min(a,b), jj = Math.max(a,b);
+        trueEdges.push({i: ii, j: jj, isOuter: true});
+    }
+
+    for(let k = 0; k < nInner; k++){
+        const a = nOuter + k;
+        const b = nOuter + ((k+1) % nInner);
+        const ii = Math.min(a,b), jj = Math.max(a,b);
+        trueEdges.push({i: ii, j: jj, isOuter: false});
+    }
+
+    // Find an unrevealed edge
+    let chosen = null;
+
+    for(const e of trueEdges){
+        const exists = l4CurrentEdges.some(x => {
+            const xi = Math.min(x.i,x.j), xj = Math.max(x.i,x.j);
+            const ei = Math.min(e.i,e.j), ej = Math.max(e.i,e.j);
+            return (xi === ei && xj === ej);
+        });
+
+        if(!exists){
+            chosen = e;
+            break;
+        }
+    }
+
+    if(!chosen){
+        hintInfo.textContent = "All edges already revealed.";
+        return;
+    }
+
+    l4HintsUsed++;
+    l4LastHintTime = now;
+
+    const totalVertices = [...outerVertices, ...innerVertices];
+    addL4Edge(chosen.i, chosen.j, totalVertices, nOuter);
+
+    hintInfo.textContent = `Hints used: ${l4HintsUsed}/3`;
 }
 
 function submitLevel4(){
-  const shapeIndex = l4CurrentShapeIndices[0];
-  const shape = level4Shapes[shapeIndex];
-  const outerVertices = shape.outer;
-  const innerVertices = shape.inner;
-  const nOuter = outerVertices.length;
-  const nInner = innerVertices.length;
 
-  const end = performance.now();
-  const timeTaken = ((end - l4RoundStartTime)/1000).toFixed(2);
+    const shapeIndex = l4CurrentShapeIndices[0];
+    const shape = level4Shapes[shapeIndex];
 
-  const trueOuterEdges = [];
-  for(let k=0;k<nOuter;k++){
-    const a=k, b=(k+1)%nOuter;
-    const ii=Math.min(a,b), jj=Math.max(a,b);
-    trueOuterEdges.push(`${ii}-${jj}`);
-  }
-  const trueInnerEdges = [];
-  for(let k=0;k<nInner;k++){
-    const a=nOuter+k, b=nOuter+((k+1)%nInner);
-    const ii=Math.min(a,b), jj=Math.max(a,b);
-    trueInnerEdges.push(`${ii}-${jj}`);
-  }
+    const outerVertices = shape.outer;
+    const innerVertices = shape.inner;
 
-  const trueOuterSet = new Set(trueOuterEdges);
-  const trueInnerSet = new Set(trueInnerEdges);
+    const nOuter = outerVertices.length;
+    const nInner = innerVertices.length;
 
-  const userOuterEdges = l4CurrentEdges.filter(e=>e.isOuter).map(e=>{
-    const ii=Math.min(e.i,e.j), jj=Math.max(e.i,e.j);
-    return `${ii}-${jj}`;
-  });
-  const userInnerEdges = l4CurrentEdges.filter(e=>!e.isOuter).map(e=>{
-    const ii=Math.min(e.i,e.j), jj=Math.max(e.i,e.j);
-    return `${ii}-${jj}`;
-  });
+    const end = performance.now();
+    const timeTaken = ((end - l4RoundStartTime)/1000).toFixed(2);
 
-  const userOuterSet = new Set(userOuterEdges);
-  const userInnerSet = new Set(userInnerEdges);
-
-  let outerMissing=0, outerWrong=0;
-  for(const t of trueOuterEdges) if(!userOuterSet.has(t)) outerMissing++;
-  for(const u of userOuterEdges) if(!trueOuterSet.has(u)) outerWrong++;
-
-  let innerMissing=0, innerWrong=0;
-  for(const t of trueInnerEdges) if(!userInnerSet.has(t)) innerMissing++;
-  for(const u of userInnerEdges) if(!trueInnerSet.has(u)) innerWrong++;
-
-  const totalMissing = outerMissing + innerMissing;
-  const totalWrong = outerWrong + innerWrong;
-
-  const totalVertices = [...outerVertices, ...innerVertices];
-  let intersect=false;
-  for(let i=0;i<l4CurrentEdges.length;i++){
-    for(let j=i+1;j<l4CurrentEdges.length;j++){
-      if(edgesIntersect(l4CurrentEdges[i],l4CurrentEdges[j],totalVertices)){
-        intersect = true; break;
-      }
+    // True edge sets
+    const trueOuterEdges = [];
+    for(let k=0;k<nOuter;k++){
+        const a=k, b=(k+1)%nOuter;
+        const ii=Math.min(a,b), jj=Math.max(a,b);
+        trueOuterEdges.push(`${ii}-${jj}`);
     }
-    if(intersect) break;
-  }
 
-  const correct = (totalMissing===0 && totalWrong===0 && !intersect);
+    const trueInnerEdges = [];
+    for(let k=0;k<nInner;k++){
+        const a=nOuter+k, b=nOuter+((k+1)%nInner);
+        const ii=Math.min(a,b), jj=Math.max(a,b);
+        trueInnerEdges.push(`${ii}-${jj}`);
+    }
 
-  const now = performance.now();
-  if(l4LastActionTime > 0){
-    l4ActionIntervals.push((now - l4LastActionTime)/1000);
-  }
-  
-  const avgInterval = l4ActionIntervals.length > 0
-    ? (l4ActionIntervals.reduce((a,b)=>a+b,0) / l4ActionIntervals.length).toFixed(2)
-    : 0;
-  const timeBeforeSubmit = l4ActionIntervals.length > 0
-    ? l4ActionIntervals[l4ActionIntervals.length - 1].toFixed(2)
-    : 0;
+    const trueOuterSet = new Set(trueOuterEdges);
+    const trueInnerSet = new Set(trueInnerEdges);
 
-  l4Results.push({
-    correct,
-    shapeName: shape.name,
-    time: timeTaken,
-    hints: l4HintsUsed,
-    outerMissing,
-    outerWrong,
-    innerMissing,
-    innerWrong,
-    totalMissing,
-    totalWrong,
-    intersect,
-    erased: l4ErasedEdges,
-    avgActionInterval: avgInterval,
-    timeBeforeSubmit: timeBeforeSubmit
-  });
+    const userOuterEdges = l4CurrentEdges
+        .filter(e => e.isOuter)
+        .map(e => {
+            const ii = Math.min(e.i,e.j), jj = Math.max(e.i,e.j);
+            return `${ii}-${jj}`;
+        });
 
-  if(l4RoundIndex === 1){
-    endLevel4();
-  } else {
-    l4RoundIndex++;
-    startLevel4Round();
-  }
+    const userInnerEdges = l4CurrentEdges
+        .filter(e => !e.isOuter)
+        .map(e => {
+            const ii = Math.min(e.i,e.j), jj = Math.max(e.i,e.j);
+            return `${ii}-${jj}`;
+        });
+
+    const userOuterSet = new Set(userOuterEdges);
+    const userInnerSet = new Set(userInnerEdges);
+
+    // Count mistakes
+    let outerMissing = 0, outerWrong = 0;
+    for(const t of trueOuterEdges) if(!userOuterSet.has(t)) outerMissing++;
+    for(const u of userOuterEdges) if(!trueOuterSet.has(u)) outerWrong++;
+
+    let innerMissing = 0, innerWrong = 0;
+    for(const t of trueInnerEdges) if(!userInnerSet.has(t)) innerMissing++;
+    for(const u of userInnerEdges) if(!trueInnerSet.has(u)) innerWrong++;
+
+    const totalMissing = outerMissing + innerMissing;
+    const totalWrong = outerWrong + innerWrong;
+
+    // Intersection checking
+    const totalVertices = [...outerVertices, ...innerVertices];
+    let intersect = false;
+
+    for(let i=0;i<l4CurrentEdges.length;i++){
+        for(let j=i+1;j<l4CurrentEdges.length;j++){
+            if(edgesIntersect(l4CurrentEdges[i], l4CurrentEdges[j], totalVertices)){
+                intersect = true;
+                break;
+            }
+        }
+        if(intersect) break;
+    }
+
+    const now = performance.now();
+    if(l4LastActionTime > 0){
+        l4ActionIntervals.push((now - l4LastActionTime)/1000);
+    }
+
+    const avgInterval =
+        l4ActionIntervals.length > 0
+        ? (l4ActionIntervals.reduce((a,b)=>a+b) / l4ActionIntervals.length).toFixed(2)
+        : 0;
+
+    const timeBeforeSubmit =
+        l4ActionIntervals.length > 0
+        ? l4ActionIntervals[l4ActionIntervals.length - 1].toFixed(2)
+        : 0;
+
+    const correct = (totalMissing === 0 && totalWrong === 0 && !intersect);
+
+    l4Results.push({
+        correct,
+        shapeName: shape.name,
+        time: timeTaken,
+        hints: l4HintsUsed,
+        outerMissing,
+        outerWrong,
+        innerMissing,
+        innerWrong,
+        totalMissing,
+        totalWrong,
+        intersect,
+        erased: l4ErasedEdges,
+        avgActionInterval: avgInterval,
+        timeBeforeSubmit
+    });
+
+    if(l4RoundIndex === 1){
+        endLevel4();
+    } else {
+        l4RoundIndex++;
+        startLevel4Round();
+    }
 }
 
 function endLevel4(){
-  let html = "";
-  l4Results.forEach((r,i)=>{
-    html += `
-      <h3 style="text-align:center;">Round ${i+1} (${r.shapeName})</h3>
-      <table class="results-table">
-        <tr><td>Result</td><td>${r.correct ? "Correct" : "Wrong"}</td></tr>
-        <tr><td>Time Taken</td><td>${r.time} sec</td></tr>
-        <tr><td>Hints Used</td><td>${r.hints}</td></tr>
-        <tr><td>Outer Edges Missing</td><td>${r.outerMissing}</td></tr>
-        <tr><td>Outer Edges Wrong</td><td>${r.outerWrong}</td></tr>
-        <tr><td>Inner Edges Missing</td><td>${r.innerMissing}</td></tr>
-        <tr><td>Inner Edges Wrong</td><td>${r.innerWrong}</td></tr>
-        <tr><td>Total Missing</td><td>${r.totalMissing}</td></tr>
-        <tr><td>Total Wrong</td><td>${r.totalWrong}</td></tr>
-        <tr><td>Any Intersections</td><td>${r.intersect ? "Yes" : "No"}</td></tr>
-        <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
-        <tr><td>Avg Time Between Actions</td><td>${r.avgActionInterval} sec</td></tr>
-        <tr><td>Time Before Submit</td><td>${r.timeBeforeSubmit} sec</td></tr>
-      </table>
-    `;
-  });
 
-  document.getElementById("summary4").innerHTML = html;
-  showScreen("results4");
+    let html = "";
+
+    l4Results.forEach((r,i) => {
+        html += `
+            <h3 style="text-align:center;">Round ${i+1} (${r.shapeName})</h3>
+            <table class="results-table">
+                <tr><td>Result</td><td>${r.correct ? "Correct" : "Wrong"}</td></tr>
+                <tr><td>Time Taken</td><td>${r.time} sec</td></tr>
+                <tr><td>Hints Used</td><td>${r.hints}</td></tr>
+                <tr><td>Outer Edges Missing</td><td>${r.outerMissing}</td></tr>
+                <tr><td>Outer Edges Wrong</td><td>${r.outerWrong}</td></tr>
+                <tr><td>Inner Edges Missing</td><td>${r.innerMissing}</td></tr>
+                <tr><td>Inner Edges Wrong</td><td>${r.innerWrong}</td></tr>
+                <tr><td>Total Missing</td><td>${r.totalMissing}</td></tr>
+                <tr><td>Total Wrong</td><td>${r.totalWrong}</td></tr>
+                <tr><td>Any Intersections</td><td>${r.intersect ? "Yes" : "No"}</td></tr>
+                <tr><td>Edges Erased</td><td>${r.erased}</td></tr>
+                <tr><td>Avg Time Between Actions</td><td>${r.avgActionInterval} sec</td></tr>
+                <tr><td>Time Before Submit</td><td>${r.timeBeforeSubmit} sec</td></tr>
+            </table>
+        `;
+    });
+
+    document.getElementById("summary4").innerHTML = html;
+    showScreen("results4");
 }
 
 /* ============ LEVEL 5 FLOW ============ */
