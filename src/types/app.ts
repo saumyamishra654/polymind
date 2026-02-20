@@ -1,0 +1,27 @@
+export type AssessmentMode = 'dev' | 'physician' | 'patient'
+
+export type Level = 1 | 2 | 3 | 4 | 5
+
+export type Screen =
+  | 'modeSelection'
+  | 'intro'
+  | 'devLevelSelection'
+  | 'instructions1'
+  | 'instructions2'
+  | 'instructions3'
+  | 'instructions4'
+  | 'level1Intro'
+  | 'level1'
+  | 'results1'
+  | 'level2Intro'
+  | 'level2'
+  | 'results2'
+  | 'level3Intro'
+  | 'level3'
+  | 'results3'
+  | 'level4Intro'
+  | 'level4'
+  | 'results4'
+  | 'level5Intro'
+  | 'level5'
+  | 'results5'
