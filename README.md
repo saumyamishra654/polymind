@@ -1,20 +1,57 @@
 # PolyMind
 
-A web-based spatial cognitive assessment tool that tests visual memory, mental rotation, and spatial reasoning through five progressively challenging levels involving polygon manipulation and reconstruction.
+PolyMind has been migrated from a single-file HTML app into a modular React + TypeScript application with behavior parity to the legacy flow.
 
-## Levels
+## Status
 
-**Level 1: Mental Rotation & Flipping** — Identify flipped and rotated polygons from multiple choice options.
-- Metrics: Correctness, Time, Avg time between actions, Time before submit
+- React app scaffolded with Vite + strict TypeScript.
+- Legacy implementation preserved at `legacy/index.monolith.html` as source-of-truth reference.
+- All assessment levels are migrated:
+  - Level 1: shape matching (flip + rotation)
+  - Level 2: labeled reconstruction
+  - Level 3: unlabeled reconstruction
+  - Level 4: nested shapes
+  - Level 5: separate triangles
+- Final report includes all-level summaries, performance graph, and CSV export.
+- Mode flow parity:
+  - `dev`: jump to any level
+  - `physician`: results after each level + final report
+  - `patient`: skip intermediate results and auto-download CSV after Level 5, then return to mode selection
 
-**Level 2: Labeled Shape Reconstruction** — Memorize and reconstruct polygons (up to 7 vertices) using numbered points.
-- Metrics: Correctness, Time, Hints used, Edges missing/wrong, Intersections, Closed shape, Edges erased, Followed label order, Avg time between actions, Time before submit
+## Run Locally
 
-**Level 3: Unlabeled Shape Reconstruction** — Memorize and reconstruct complex polygons (8-9 vertices) without labels.
-- Metrics: Correctness, Time, Hints used, Edges missing/wrong, Intersections, Closed shape, Edges erased, Avg time between actions, Time before submit
+```bash
+npm install
+npm run dev
+```
 
-**Level 4: Nested Shape Reconstruction** — Memorize and reconstruct nested shapes (outer + inner versions of same polygon).
-- Metrics: Correctness, Shape name, Time, Hints used, Outer/inner edges missing/wrong, Total missing/wrong, Intersections, Edges erased, Avg time between actions, Time before submit
+## Build
 
-**Level 5: Multi-Shape Construction** — Create two separate triangles from scattered points that do not touch each other.
-- Metrics: Correctness, Time, Has two triangles, Triangle 1/2 valid, Triangles separate, Shared vertices/edges count, Edges intersect, Edges erased, Avg time between actions, Time before submit
+```bash
+npm run build
+```
+
+## Architecture Map
+
+- App flow and routing state:
+  - `src/App.tsx`
+- Shared content/data:
+  - `src/data/appContent.ts`
+  - `src/data/levelData.ts`
+- Domain/app types:
+  - `src/types/domain.ts`
+  - `src/types/app.ts`
+- Shared gameplay utilities:
+  - `src/lib/geometry.ts`
+  - `src/features/reconstruction/*`
+- Level implementations:
+  - `src/features/level1/*`
+  - `src/features/level2/*`
+  - `src/features/level3/*`
+  - `src/features/level4/*`
+  - `src/features/level5/*`
+- Final report and export:
+  - `src/lib/resultsReport.ts`
+  - `src/features/report/PerformanceGraph.tsx`
+  - `src/features/report/FinalReportScreen.tsx`
+  - `src/lib/csvExport.ts`
